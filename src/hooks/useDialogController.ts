@@ -1,13 +1,29 @@
 import { useState } from "react";
 
-import useDialogObserver, {
-  type DialogTarget,
-  type DialogPhase,
-} from "./useDialogObserver";
+import useDialogObserver, { type DialogPhase } from "./useDialogObserver";
 
-export default function useDialogController(target: DialogTarget) {
-  const [phase, setPhase] = useState<DialogPhase>("empty");
-  const { toggle } = useDialogObserver(target, { onPhaseChange: setPhase });
+export type { DialogPhase };
+
+/**
+ * 用於 `<dialog />` 的控制器，可以取得當前狀態、是否開啟、切換開啟
+ *
+ * ```ts
+  function Component() {
+    const { toggle, ref, isOpen, phase } = useDialogObserver()
+
+    return (
+      <dialog ref={ref} className="modal">
+        <div className="modal-box"></div>
+      </dialog>
+    ) 
+  }
+ * ```
+ */
+export default function useDialogController() {
+  const [phase, setPhase] = useState<DialogPhase>("none");
+  const { toggle, ref } = useDialogObserver({
+    onPhaseChange: setPhase,
+  });
 
   const isOpen = phase === "opened";
 
@@ -18,5 +34,7 @@ export default function useDialogController(target: DialogTarget) {
     toggle,
     /** dialog 狀態 */
     phase,
+    /** 方便綁定 dialog 的 ref */
+    ref,
   } as const;
 }

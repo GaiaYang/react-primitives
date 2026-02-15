@@ -1,105 +1,153 @@
-import { useCallback, useEffect, useEffectEvent, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 /**
- * dialog 階段
+ * dialog 的階段
  *
- * - `"empty"`: 找不到元素
- * - `"opening"`: 開啟中
- * - `"opened"`: 開啟
- * - `"closing"`: 關閉中
- * - `"closed"`: 關閉
+ * - "none": 找不到元素
+ * - "opening": 開啟中
+ * - "opened": 開啟
+ * - "closing": 關閉中
+ * - "closed": 關閉
  */
-export type DialogPhase = "empty" | "opening" | "opened" | "closing" | "closed";
+export type DialogPhase = "none" | "opening" | "opened" | "closing" | "closed";
 
-export type DialogTarget =
-  | (() => HTMLDialogElement | null)
-  | React.RefObject<HTMLDialogElement | null>
-  | string
-  | undefined
-  | null;
+/** 監聽器的控制選項 */
+export interface UseDialogObserverOptions {
+  /** 階段變化時的回調 */
+  onPhaseChange?: (phase: DialogPhase) => void;
+  /** 開啟時的回調 */
+  onOpening?: () => void;
+  /** 關閉時的回調 */
+  onClosing?: () => void;
+  /** 開啟完成時的回調 */
+  onOpened?: () => void;
+  /** 關閉完成時的回調 */
+  onClosed?: () => void;
+}
 
+/**
+ * 用於控制 `<dialog />` 事件
+ *
+ * ```ts
+  function Component() {
+    const { toggle, ref } = useDialogObserver()
+
+    return (
+      <dialog ref={ref} className="modal">
+        <div className="modal-box"></div>
+      </dialog>
+    ) 
+  }
+ * ```
+ */
 export default function useDialogObserver(
-  target?: DialogTarget,
-  callbacks: {
-    onPhaseChange?: (phase: DialogPhase) => void;
-    onOpening?: () => void;
-    onClosing?: () => void;
-    onOpened?: () => void;
-    onClosed?: () => void;
-  } = {},
+  callbacks: UseDialogObserverOptions = {},
 ) {
-  const phaseRef = useRef<DialogPhase>("empty");
+  const phaseRef = useRef<DialogPhase>("none");
   const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const callbacksRef = useRef(callbacks);
+  const observerRef = useRef<MutationObserver | null>(null);
 
-  const updatePhase = useEffectEvent((next: DialogPhase) => {
+  // 快取 callbacks 用於靜態使用
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  }, [callbacks]);
+
+  /** 更新 dialog 階段 */
+  const setPhase = useCallback((next: DialogPhase) => {
     if (phaseRef.current === next) return;
 
     phaseRef.current = next;
-    callbacks.onPhaseChange?.(phaseRef.current);
+    const { onPhaseChange, onOpening, onClosing, onOpened, onClosed } =
+      callbacksRef.current;
+
+    onPhaseChange?.(next);
 
     switch (next) {
       case "opening":
-        callbacks.onOpening?.();
+        onOpening?.();
         break;
       case "closing":
-        callbacks.onClosing?.();
+        onClosing?.();
         break;
       case "opened":
-        callbacks.onOpened?.();
+        onOpened?.();
         break;
       case "closed":
-        callbacks.onClosed?.();
+        onClosed?.();
         break;
     }
-  });
+  }, []);
 
-  const handleObserver = useEffectEvent((mutations: MutationRecord[]) => {
-    for (const mutation of mutations) {
-      if (mutation.type === "attributes" && mutation.attributeName === "open") {
-        const dialog = mutation.target as HTMLDialogElement;
-
-        updatePhase(dialog.open ? "opening" : "closing");
+  /** 監控 open 屬性變化 */
+  const handleMutation = useCallback(
+    (mutations: MutationRecord[]) => {
+      for (const mutation of mutations) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "open"
+        ) {
+          const dialog = mutation.target as HTMLDialogElement;
+          setPhase(dialog.open ? "opening" : "closing");
+        }
       }
-    }
-  });
+    },
+    [setPhase],
+  );
 
-  const handleTransitionEnd = useEffectEvent((event: TransitionEvent) => {
-    if (event.target !== event.currentTarget) return;
+  /** 監控 transitionend */
+  const handleTransitionEnd = useCallback(
+    (event: TransitionEvent) => {
+      if (event.target !== event.currentTarget) return;
+      const dialog = event.currentTarget as HTMLDialogElement;
+      setPhase(dialog.open ? "opened" : "closed");
+    },
+    [setPhase],
+  );
 
-    const dialog = event.currentTarget as HTMLDialogElement;
+  /** 外部綁定 ref callback，隨元素掛載/卸載自動管理 observer & listener */
+  const ref = useCallback(
+    (el: HTMLDialogElement | null) => {
+      function cleanup() {
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+          observerRef.current = null;
+        }
 
-    updatePhase(dialog.open ? "opened" : "closed");
-  });
+        if (dialogRef.current) {
+          dialogRef.current.removeEventListener(
+            "transitionend",
+            handleTransitionEnd,
+          );
+          dialogRef.current = null;
+          setPhase("none");
+        }
+      }
 
-  useEffect(() => {
-    const dialog = resolveDialog(target);
+      if (el) {
+        dialogRef.current = el;
+        setPhase(el.open ? "opened" : "closed");
 
-    dialogRef.current = dialog || null;
+        const observer = new MutationObserver(handleMutation);
+        observer.observe(el, { attributes: true, attributeFilter: ["open"] });
+        observerRef.current = observer;
 
-    if (!dialog) {
-      updatePhase("empty");
-      return;
-    }
+        el.addEventListener("transitionend", handleTransitionEnd);
+      } else {
+        cleanup();
+      }
 
-    updatePhase(dialog.open ? "opened" : "closed");
+      return cleanup;
+    },
+    [handleMutation, handleTransitionEnd, setPhase],
+  );
 
-    const observer = new MutationObserver(handleObserver);
-    observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
-
-    dialog.addEventListener("transitionend", handleTransitionEnd);
-
-    return () => {
-      observer.disconnect();
-      dialog.removeEventListener("transitionend", handleTransitionEnd);
-    };
-  }, [target]);
-
+  /** 切換 dialog 開關 */
   const toggle = useCallback((next?: boolean) => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog || !dialog.isConnected) return;
 
     const shouldOpen = typeof next === "boolean" ? next : !dialog.open;
-    // 避免重複開關
     if (shouldOpen === dialog.open) return;
 
     if (shouldOpen) {
@@ -109,29 +157,5 @@ export default function useDialogObserver(
     }
   }, []);
 
-  return {
-    /** 控制 dialog 開關 */
-    toggle,
-  };
-}
-
-/** 解析 dialog 元素 */
-function resolveDialog(target?: DialogTarget): HTMLDialogElement | undefined {
-  let el: HTMLElement | null | undefined;
-
-  if (!target) return undefined;
-
-  switch (typeof target) {
-    case "function":
-      el = target();
-      break;
-    case "string":
-      el = document.getElementById(target);
-      break;
-    default:
-      el = target?.current ?? undefined;
-  }
-
-  if (el instanceof HTMLDialogElement) return el;
-  return undefined;
+  return { toggle, ref };
 }
