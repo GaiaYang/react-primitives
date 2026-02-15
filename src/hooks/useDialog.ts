@@ -139,7 +139,7 @@ export function useDialogObserver(
 
   const toggle = useCallback((next?: boolean) => {
     const dialog = dialogRef.current;
-    if (!dialog || !dialog.isConnected) return;
+    if (!dialog) return;
 
     const shouldOpen = typeof next === "boolean" ? next : !dialog.open;
     // 避免重複開關
