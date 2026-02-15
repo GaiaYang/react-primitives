@@ -1,10 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useEffect,
-  useEffectEvent,
-  useRef,
-} from "react";
+import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 
 /**
  * dialog 階段
@@ -17,52 +11,15 @@ import {
  */
 export type DialogPhase = "empty" | "opening" | "opened" | "closing" | "closed";
 
-type DialogTarget =
+export type DialogTarget =
   | (() => HTMLDialogElement | null)
   | React.RefObject<HTMLDialogElement | null>
   | string
   | undefined
   | null;
 
-/** 解析 dialog 元素 */
-function resolveDialog(target?: DialogTarget): HTMLDialogElement | undefined {
-  let el: HTMLElement | null | undefined;
-
-  if (!target) return undefined;
-
-  switch (typeof target) {
-    case "function":
-      el = target();
-      break;
-    case "string":
-      el = document.getElementById(target);
-      break;
-    default:
-      el = target?.current ?? undefined;
-  }
-
-  if (el instanceof HTMLDialogElement) return el;
-  return undefined;
-}
-
-export function useDialogController(target: DialogTarget) {
-  const [phase, setPhase] = useState<DialogPhase>("empty");
-  const { toggle } = useDialogObserver(target, { onPhaseChange: setPhase });
-
-  const isOpen = phase === "opened";
-
-  return {
-    /** dialog 是否開啟 */
-    isOpen,
-    /** 控制 dialog 開關 */
-    toggle,
-    /** dialog 狀態 */
-    phase,
-  } as const;
-}
-
-export function useDialogObserver(
-  target: DialogTarget,
+export default function useDialogObserver(
+  target?: DialogTarget,
   callbacks: {
     onPhaseChange?: (phase: DialogPhase) => void;
     onOpening?: () => void;
@@ -156,4 +113,25 @@ export function useDialogObserver(
     /** 控制 dialog 開關 */
     toggle,
   };
+}
+
+/** 解析 dialog 元素 */
+function resolveDialog(target?: DialogTarget): HTMLDialogElement | undefined {
+  let el: HTMLElement | null | undefined;
+
+  if (!target) return undefined;
+
+  switch (typeof target) {
+    case "function":
+      el = target();
+      break;
+    case "string":
+      el = document.getElementById(target);
+      break;
+    default:
+      el = target?.current ?? undefined;
+  }
+
+  if (el instanceof HTMLDialogElement) return el;
+  return undefined;
 }

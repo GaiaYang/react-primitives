@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 
-import { useDialogController } from "@/hooks/useDialog";
+import useDialogController from "@/hooks/useDialogController";
 
 export default function page() {
   return (

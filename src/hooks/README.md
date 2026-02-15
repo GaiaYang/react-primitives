@@ -1,13 +1,21 @@
 # hooks
 
-## useDialog.ts
+## `useDialogObserver.ts`
 
 用於控制 `<dialog />` 事件
 
 ```ts
-import { useDialogController, useDialogObserver } from "@/hooks/useDialog";
+import useDialogObserver from "@/hooks/useDialogObserver";
 ```
 
-`useDialogController` 基於 `useDialogObserver` 的狀態管理，可以取得當前狀態、是否開啟、切換開啟
-
 `useDialogObserver` 用於監聽 `<dialog />` 事件並回傳對應回調
+
+## `useDialogController.ts`
+
+用於控制 `<dialog />` 事件
+
+```ts
+import useDialogController from "@/hooks/useDialogController";
+```
+
+基於 `useDialogObserver` 的狀態管理，可以取得當前狀態、是否開啟、切換開啟
