@@ -1,7 +1,8 @@
 "use client";
 
-import { useDialogController } from "@/hooks/useDialog";
 import { useRef } from "react";
+
+import { useDialogController } from "@/hooks/useDialog";
 
 export default function page() {
   return (
@@ -26,8 +27,8 @@ function Basic() {
       >
         toggle dialog
       </button>
-      <p>{`dialog open: ${isOpen ? "true" : "false"}`}</p>
-      <p>{`dialog phase: ${phase}`}</p>
+      <p>{`dialog ${isOpen ? "open" : "close"}`}</p>
+      <p>{`dialog is ${phase}`}</p>
       <dialog ref={dialogRef} className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">Hello!</h3>

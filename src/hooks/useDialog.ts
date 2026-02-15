@@ -7,23 +7,28 @@ import {
 } from "react";
 
 /**
- * dialog 狀態
- * - empty: 找不到元素
- * - opening: 開啟中
- * - opened: 開啟
- * - closing: 關閉中
- * - closed: 關閉
+ * dialog 階段
+ *
+ * - `"empty"`: 找不到元素
+ * - `"opening"`: 開啟中
+ * - `"opened"`: 開啟
+ * - `"closing"`: 關閉中
+ * - `"closed"`: 關閉
  */
 export type DialogPhase = "empty" | "opening" | "opened" | "closing" | "closed";
 
 type DialogTarget =
   | (() => HTMLDialogElement | null)
   | React.RefObject<HTMLDialogElement | null>
-  | string;
+  | string
+  | undefined
+  | null;
 
 /** 解析 dialog 元素 */
 function resolveDialog(target?: DialogTarget): HTMLDialogElement | undefined {
   let el: HTMLElement | null | undefined;
+
+  if (!target) return undefined;
 
   switch (typeof target) {
     case "function":
@@ -40,9 +45,9 @@ function resolveDialog(target?: DialogTarget): HTMLDialogElement | undefined {
   return undefined;
 }
 
-export function useDialogController(ref: DialogTarget) {
+export function useDialogController(target: DialogTarget) {
   const [phase, setPhase] = useState<DialogPhase>("empty");
-  const { toggle } = useDialogObserver(ref, { onPhaseChange: setPhase });
+  const { toggle } = useDialogObserver(target, { onPhaseChange: setPhase });
 
   const isOpen = phase === "opened";
 
@@ -57,7 +62,7 @@ export function useDialogController(ref: DialogTarget) {
 }
 
 export function useDialogObserver(
-  ref: DialogTarget,
+  target: DialogTarget,
   callbacks: {
     onPhaseChange?: (phase: DialogPhase) => void;
     onOpening?: () => void;
@@ -67,8 +72,8 @@ export function useDialogObserver(
   } = {},
 ) {
   const phaseRef = useRef<DialogPhase>("empty");
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
 
-  /** 更新 dialog 階段 */
   const updatePhase = useEffectEvent((next: DialogPhase) => {
     if (phaseRef.current === next) return;
 
@@ -110,7 +115,10 @@ export function useDialogObserver(
   });
 
   useEffect(() => {
-    const dialog = resolveDialog(ref);
+    const dialog = resolveDialog(target);
+
+    dialogRef.current = dialog || null;
+
     if (!dialog) {
       updatePhase("empty");
       return;
@@ -127,25 +135,25 @@ export function useDialogObserver(
       observer.disconnect();
       dialog.removeEventListener("transitionend", handleTransitionEnd);
     };
-  }, [ref]);
+  }, [target]);
 
-  const toggle = useCallback(
-    (next?: boolean) => {
-      const dialog = resolveDialog(ref);
-      if (!dialog) return;
+  const toggle = useCallback((next?: boolean) => {
+    const dialog = dialogRef.current;
+    if (!dialog || !dialog.isConnected) return;
 
-      const shouldOpen = typeof next === "boolean" ? next : !dialog.open;
-      // 避免重複開關
-      if (shouldOpen === dialog.open) return;
+    const shouldOpen = typeof next === "boolean" ? next : !dialog.open;
+    // 避免重複開關
+    if (shouldOpen === dialog.open) return;
 
-      if (shouldOpen) {
-        dialog.showModal();
-      } else {
-        dialog.close();
-      }
-    },
-    [ref],
-  );
+    if (shouldOpen) {
+      dialog.showModal();
+    } else {
+      dialog.close();
+    }
+  }, []);
 
-  return { toggle };
+  return {
+    /** 控制 dialog 開關 */
+    toggle,
+  };
 }
