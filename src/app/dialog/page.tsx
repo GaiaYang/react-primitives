@@ -11,7 +11,7 @@ export default function page() {
       <Article>
         <h1>Dialog Hook 測試</h1>
         <Basic />
-        <MultipleDialog />
+        <DynamicDialog />
       </Article>
     </main>
   );
@@ -51,7 +51,7 @@ function Basic() {
   );
 }
 
-function MultipleDialog() {
+function DynamicDialog() {
   const [visibleDialog, setVisibleDialog] = useState(true);
   const { toggle, isOpen, phase, ref } = useDialogController();
 

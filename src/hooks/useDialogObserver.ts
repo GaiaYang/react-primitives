@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * dialog 的階段
@@ -43,9 +43,9 @@ export interface UseDialogObserverOptions {
 export default function useDialogObserver(
   callbacks: UseDialogObserverOptions = {},
 ) {
+  const callbacksRef = useRef(callbacks);
   const phaseRef = useRef<DialogPhase>("none");
   const dialogRef = useRef<HTMLDialogElement | null>(null);
-  const callbacksRef = useRef(callbacks);
   const observerRef = useRef<MutationObserver | null>(null);
 
   // 快取 callbacks 用於靜態使用
@@ -87,6 +87,7 @@ export default function useDialogObserver(
           mutation.type === "attributes" &&
           mutation.attributeName === "open"
         ) {
+          console.log("mutation");
           const dialog = mutation.target as HTMLDialogElement;
           setPhase(dialog.open ? "opening" : "closing");
         }
@@ -105,7 +106,7 @@ export default function useDialogObserver(
     [setPhase],
   );
 
-  /** 外部綁定 ref callback，隨元素掛載/卸載自動管理 observer & listener */
+  /** 綁定 dialog 元素 */
   const ref = useCallback(
     (el: HTMLDialogElement | null) => {
       function cleanup() {
@@ -126,13 +127,19 @@ export default function useDialogObserver(
 
       if (el) {
         dialogRef.current = el;
-        setPhase(el.open ? "opened" : "closed");
+        setPhase(dialogRef.current.open ? "opened" : "closed");
 
         const observer = new MutationObserver(handleMutation);
-        observer.observe(el, { attributes: true, attributeFilter: ["open"] });
+        observer.observe(dialogRef.current, {
+          attributes: true,
+          attributeFilter: ["open"],
+        });
         observerRef.current = observer;
 
-        el.addEventListener("transitionend", handleTransitionEnd);
+        dialogRef.current.addEventListener(
+          "transitionend",
+          handleTransitionEnd,
+        );
       } else {
         cleanup();
       }
@@ -148,7 +155,6 @@ export default function useDialogObserver(
     if (!dialog || !dialog.isConnected) return;
 
     const shouldOpen = typeof next === "boolean" ? next : !dialog.open;
-    if (shouldOpen === dialog.open) return;
 
     if (shouldOpen) {
       dialog.showModal();
@@ -157,5 +163,13 @@ export default function useDialogObserver(
     }
   }, []);
 
-  return { toggle, ref };
+  return useMemo(
+    () => ({
+      /** 切換 dialog 開關 */
+      toggle,
+      /** 綁定 dialog 元素 */
+      ref,
+    }),
+    [toggle, ref],
+  );
 }
