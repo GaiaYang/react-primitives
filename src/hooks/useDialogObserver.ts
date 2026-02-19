@@ -87,7 +87,6 @@ export default function useDialogObserver(
           mutation.type === "attributes" &&
           mutation.attributeName === "open"
         ) {
-          console.log("mutation");
           const dialog = mutation.target as HTMLDialogElement;
           setPhase(dialog.open ? "opening" : "closing");
         }
