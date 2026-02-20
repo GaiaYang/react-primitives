@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import useDialogObserver, { type DialogPhase } from "./useDialogObserver";
+import useDialogObserver, { type DialogPhase } from "./useDialogMachine";
 
 export type { DialogPhase };
 
@@ -20,7 +20,7 @@ export type { DialogPhase };
  * ```
  */
 export default function useDialogController() {
-  const [phase, setPhase] = useState<DialogPhase>("none");
+  const [phase, setPhase] = useState<DialogPhase>("unmounted");
   const { toggle, ref } = useDialogObserver({
     onPhaseChange: setPhase,
   });
