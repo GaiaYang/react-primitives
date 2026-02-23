@@ -10,10 +10,55 @@ export default function page() {
     <main className="py-10">
       <Article>
         <h1>Dialog Hook 測試</h1>
+        <Original />
         <Basic />
-        <DynamicDialog />
+        <Dynamic />
       </Article>
     </main>
+  );
+}
+
+function Original() {
+  const [visibleDialog, setVisibleDialog] = useState(true);
+  const { toggle, isOpen, phase, ref } = useDialogController();
+
+  return (
+    <div>
+      <h2>原生無樣式 Dialog</h2>
+      <button
+        type="button"
+        className="btn"
+        onClick={() => {
+          toggle();
+        }}
+      >
+        切換 dialog 開關
+      </button>
+      <p>{`dialog 目前是${isOpen ? "打開" : "關閉"}`}</p>
+      <p>{`dialog 現在處於${phase}階段`}</p>
+      <button
+        type="button"
+        className="btn"
+        onClick={() => {
+          setVisibleDialog((e) => !e);
+        }}
+      >
+        {`${visibleDialog ? "移除" : "加載"} dialog`}
+      </button>
+      {visibleDialog && (
+        <dialog ref={ref}>
+          <h3>Hello!</h3>
+          <p>Press ESC key or click the button below to close</p>
+          <button
+            onClick={() => {
+              toggle();
+            }}
+          >
+            關閉
+          </button>
+        </dialog>
+      )}
+    </div>
   );
 }
 
@@ -22,7 +67,7 @@ function Basic() {
 
   return (
     <section>
-      <h2>單一 Dialog</h2>
+      <h2>Dialog 在 dom 變化時的行為</h2>
       <button
         type="button"
         className="btn"
@@ -36,7 +81,7 @@ function Basic() {
       <p>{`dialog 現在處於${phase}階段`}</p>
       <dialog ref={ref} className="modal">
         <div className="modal-box">
-          <h3 className="text-lg font-bold">Hello!</h3>
+          <h3 className="text-lg font-bold">第 1 個 dialog</h3>
           <p className="py-4">
             Press ESC key or click the button below to close
           </p>
@@ -51,7 +96,7 @@ function Basic() {
   );
 }
 
-function DynamicDialog() {
+function Dynamic() {
   const [visibleDialog, setVisibleDialog] = useState(true);
   const { toggle, isOpen, phase, ref } = useDialogController();
 
@@ -81,7 +126,7 @@ function DynamicDialog() {
       {visibleDialog && (
         <dialog ref={ref} className="modal">
           <div className="modal-box">
-            <h3 className="text-lg font-bold">第 1 個 dialog</h3>
+            <h3 className="text-lg font-bold">Hello!</h3>
             <p className="py-4">
               Press ESC key or click the button below to close
             </p>
