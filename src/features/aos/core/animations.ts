@@ -37,15 +37,18 @@ const presets = {
       transform: "none",
     },
   },
+  zoom: {
+    from: {
+      opacity: 0,
+      transitionProperty: "opacity, transform",
+    },
+    to: {
+      opacity: 1,
+      ...translate3d(0, 0, 0),
+      ...scale(1),
+    },
+  },
 } satisfies PresetMap;
-
-function translate3d(
-  x: number,
-  y: number,
-  z: number,
-): Pick<gsap.TweenVars, "x" | "y" | "z"> {
-  return { x, y, z };
-}
 
 /** 建立 ScrollTrigger 動畫 */
 function createScrollAnimation(
@@ -157,6 +160,116 @@ const animations = {
       options,
     );
   },
+  zoomIn(element, options) {
+    createScrollAnimation(element, presets.zoom, scale(0.6), {}, options);
+  },
+  zoomInUp(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      { ...translate3d(0, DISTANCE, 0), ...scale(0.6) },
+      {},
+      options,
+    );
+  },
+  zoomInDown(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      { ...translate3d(0, -DISTANCE, 0), ...scale(0.6) },
+      {},
+      options,
+    );
+  },
+  zoomInRight(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      { ...translate3d(-DISTANCE, 0, 0), ...scale(0.6) },
+      {},
+      options,
+    );
+  },
+  zoomInLeft(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      { ...translate3d(DISTANCE, 0, 0), ...scale(0.6) },
+      {},
+      options,
+    );
+  },
+  zoomOut(element, options) {
+    createScrollAnimation(element, presets.zoom, scale(1.2), {}, options);
+  },
+  zoomOutUp(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      {
+        ...translate3d(0, DISTANCE, 0),
+        ...scale(1.2),
+      },
+      {},
+      options,
+    );
+  },
+  zoomOutDown(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      {
+        ...translate3d(0, -DISTANCE, 0),
+        ...scale(1.2),
+      },
+      {},
+      options,
+    );
+  },
+  zoomOutRight(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      {
+        ...translate3d(-DISTANCE, 0, 0),
+        ...scale(1.2),
+      },
+      {},
+      options,
+    );
+  },
+  zoomOutLeft(element, options) {
+    createScrollAnimation(
+      element,
+      presets.zoom,
+      {
+        ...translate3d(DISTANCE, 0, 0),
+        ...scale(1.2),
+      },
+      {},
+      options,
+    );
+  },
 } satisfies Record<string, (element: Element, options?: Options) => void>;
 
 export default animations;
+
+function translate3d(
+  x: number,
+  y: number,
+  z: number,
+): Pick<gsap.TweenVars, "x" | "y" | "z"> {
+  return { x, y, z };
+}
+
+function scale(x: number, y?: number): gsap.TweenVars {
+  if (typeof y === "number") {
+    return {
+      scaleX: x,
+      scaleY: y,
+    };
+  }
+  return {
+    scale: x,
+  };
+}
