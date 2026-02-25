@@ -70,7 +70,7 @@ function parseOptions<E extends Element>(element: E) {
     offset: 120,
     delay: 0,
     duration: 400,
-    easing: "ease",
+    easing: "none",
     once: false,
     mirror: false,
     anchorPlacement: "top-bottom",

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
-import { useAOSInitial, type Animation } from "@/features/aos";
+import { type Animation } from "@/features/aos";
 import cn from "@/utils/cn";
 
 import gsap from "gsap";

@@ -20,7 +20,7 @@ const DEFAULT_OPTIONS: Options = {
   offset: 120,
   delay: 0,
   duration: 400,
-  easing: "ease",
+  easing: "none",
   once: false,
   mirror: false,
   anchorPlacement: "top-bottom",
@@ -72,7 +72,9 @@ function createScrollAnimation(
       scrollTrigger: {
         trigger: element,
         toggleActions: "play none none reverse",
+        once,
       },
+      ease: easing,
       duration: duration / 1000,
       delay: delay / 1000,
     },
