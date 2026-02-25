@@ -1,8 +1,9 @@
-import type { Options, Animation } from "../types";
+import type { ScrollAnimationOptions, Animation } from "../types";
 
-import animations from "./animations";
+import animations, { type AnimationFunction } from "./animations";
+import { DEFAULT_OPTIONS } from "./config";
 
-export type DataKeys =
+type DataKeys =
   | "offset"
   | "delay"
   | "duration"
@@ -11,7 +12,7 @@ export type DataKeys =
   | "mirror"
   | "anchor-placement";
 
-const AOS_PROPS_MAP = {
+const AOS_ATTRIBUTE_MAP = {
   "data-aos-offset": "offset",
   "data-aos-delay": "delay",
   "data-aos-duration": "duration",
@@ -19,9 +20,9 @@ const AOS_PROPS_MAP = {
   "data-aos-mirror": "mirror",
   "data-aos-once": "once",
   "data-aos-anchor-placement": "anchorPlacement",
-} satisfies Record<`data-aos-${DataKeys}`, keyof Options>;
+} satisfies Record<`data-aos-${DataKeys}`, keyof ScrollAnimationOptions>;
 
-const animationsMap = {
+const ANIMATION_REGISTRY = {
   fade: animations.fade,
   "fade-up": animations.fadeUp,
   "fade-down": animations.fadeDown,
@@ -49,38 +50,29 @@ const animationsMap = {
   "zoom-out-down": animations.zoomOutDown,
   "zoom-out-left": animations.zoomOutLeft,
   "zoom-out-right": animations.zoomOutRight,
-} satisfies Record<Animation, (element: Element, options?: Options) => void>;
+} satisfies Record<Animation, AnimationFunction>;
 
-export default function createAnimations<E extends Element>(elements: E[]) {
+export default function initScrollAnimations<E extends Element>(elements: E[]) {
   for (const element of elements) {
-    const { animate, ...options } = parseOptions(element);
-
+    const animate = element.getAttribute("data-aos") as Animation | null;
     if (!animate) continue;
 
-    const handleAnimation = animationsMap[animate];
+    const handleAnimation = ANIMATION_REGISTRY[animate];
 
     if (handleAnimation) {
+      const options = parseAttributes(element);
       handleAnimation(element, options);
     }
   }
 }
 
-function parseOptions<E extends Element>(element: E) {
-  const options: Options = {
-    offset: 120,
-    delay: 0,
-    duration: 400,
-    easing: "none",
-    once: false,
-    mirror: false,
-    anchorPlacement: "top-bottom",
-  };
-  const animate = element.getAttribute("data-aos") as Animation | null;
+function parseAttributes<E extends Element>(element: E) {
+  const options = { ...DEFAULT_OPTIONS };
 
-  for (const key of Object.keys(AOS_PROPS_MAP)) {
+  for (const key of Object.keys(AOS_ATTRIBUTE_MAP)) {
     const value = element.getAttribute(key);
     if (value) {
-      const prop = AOS_PROPS_MAP[key as `data-aos-${DataKeys}`];
+      const prop = AOS_ATTRIBUTE_MAP[key as `data-aos-${DataKeys}`];
 
       switch (prop) {
         case "offset":
@@ -89,18 +81,18 @@ function parseOptions<E extends Element>(element: E) {
           options[prop] = parseInt(value, 10);
           break;
         case "easing":
-          options[prop] = value as Options["easing"];
+          options[prop] = value as ScrollAnimationOptions["easing"];
           break;
         case "once":
         case "mirror":
           options[prop] = value === "true";
           break;
         case "anchorPlacement":
-          options[prop] = value as Options["anchorPlacement"];
+          options[prop] = value as ScrollAnimationOptions["anchorPlacement"];
           break;
       }
     }
   }
 
-  return { ...options, animate };
+  return options;
 }

@@ -1,4 +1,4 @@
-export interface Options {
+export interface ScrollAnimationOptions {
   offset: number;
   delay: number;
   duration: number;

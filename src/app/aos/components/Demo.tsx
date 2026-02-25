@@ -6,11 +6,10 @@ import { type Animation } from "@/features/aos";
 import cn from "@/utils/cn";
 
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import createAnimations from "@/features/aos/core/createAnimations";
+import initScrollAnimations from "@/features/aos/core/initScrollAnimations";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP);
 
 const animations: Animation[] = [
   "fade",
@@ -50,7 +49,7 @@ export default function Demo() {
   useGSAP(
     () => {
       const boxes = gsap.utils.toArray("[data-aos]") as HTMLDivElement[];
-      createAnimations(boxes);
+      initScrollAnimations(boxes);
     },
     { scope: containerRef },
   );
@@ -87,7 +86,6 @@ export default function Demo() {
           <div
             key={item}
             data-aos={item}
-            data-aos-offset={200}
             className={cn(
               "rounded-box border-base-content/50 h-80 border",
               bgColors[index],

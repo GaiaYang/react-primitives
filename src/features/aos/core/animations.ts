@@ -1,9 +1,16 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import type { Options } from "../types";
+import type { ScrollAnimationOptions } from "../types";
+import { DEFAULT_OPTIONS, DISTANCE } from "./config";
+import { translate3d, scale, rotateX, rotateY, perspective } from "./tweenVars";
 
 gsap.registerPlugin(ScrollTrigger);
+
+export type AnimationFunction = (
+  element: Element,
+  options?: ScrollAnimationOptions,
+) => void;
 
 type AnimationPreset = {
   from: gsap.TweenVars;
@@ -12,20 +19,7 @@ type AnimationPreset = {
 
 type PresetMap = Record<string, AnimationPreset>;
 
-/** 距離 `px` */
-const DISTANCE = 100;
-
-/** 預設選項 */
-const DEFAULT_OPTIONS: Options = {
-  offset: 120,
-  delay: 0,
-  duration: 400,
-  easing: "none",
-  once: false,
-  mirror: false,
-  anchorPlacement: "top-bottom",
-};
-
+/** 動畫預設配置 */
 const presets = {
   fade: {
     from: {
@@ -68,12 +62,12 @@ const presets = {
 } satisfies PresetMap;
 
 /** 建立 ScrollTrigger 動畫 */
-function createScrollAnimation(
+function createScrollTriggerTween(
   element: Element,
   preset: AnimationPreset,
   fromVars?: gsap.TweenVars,
   toVars?: gsap.TweenVars,
-  options?: Options,
+  options?: ScrollAnimationOptions,
 ) {
   const { offset, delay, duration, easing, once, mirror, anchorPlacement } = {
     ...DEFAULT_OPTIONS,
@@ -91,7 +85,9 @@ function createScrollAnimation(
       ...toVars,
       scrollTrigger: {
         trigger: element,
-        toggleActions: "play none none reverse",
+        toggleActions: mirror
+          ? "play play reverse none"
+          : "play none none reverse",
         once,
         markers: true,
         start: anchorPlacement.replace("-", " "),
@@ -106,10 +102,10 @@ function createScrollAnimation(
 
 const animations = {
   fade(element, options) {
-    createScrollAnimation(element, presets.fade, {}, {}, options);
+    createScrollTriggerTween(element, presets.fade, {}, {}, options);
   },
   fadeUp(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(0, DISTANCE, 0),
@@ -118,7 +114,7 @@ const animations = {
     );
   },
   fadeDown(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(0, -DISTANCE, 0),
@@ -127,7 +123,7 @@ const animations = {
     );
   },
   fadeRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(-DISTANCE, 0, 0),
@@ -136,7 +132,7 @@ const animations = {
     );
   },
   fadeLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(DISTANCE, 0, 0),
@@ -145,7 +141,7 @@ const animations = {
     );
   },
   fadeUpRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(-DISTANCE, DISTANCE, 0),
@@ -154,7 +150,7 @@ const animations = {
     );
   },
   fadeUpLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(DISTANCE, DISTANCE, 0),
@@ -163,7 +159,7 @@ const animations = {
     );
   },
   fadeDownRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(-DISTANCE, -DISTANCE, 0),
@@ -172,7 +168,7 @@ const animations = {
     );
   },
   fadeDownLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.fade,
       translate3d(DISTANCE, -DISTANCE, 0),
@@ -181,10 +177,10 @@ const animations = {
     );
   },
   zoomIn(element, options) {
-    createScrollAnimation(element, presets.zoom, scale(0.6), {}, options);
+    createScrollTriggerTween(element, presets.zoom, scale(0.6), {}, options);
   },
   zoomInUp(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       { ...translate3d(0, DISTANCE, 0), ...scale(0.6) },
@@ -193,7 +189,7 @@ const animations = {
     );
   },
   zoomInDown(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       { ...translate3d(0, -DISTANCE, 0), ...scale(0.6) },
@@ -202,7 +198,7 @@ const animations = {
     );
   },
   zoomInRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       { ...translate3d(-DISTANCE, 0, 0), ...scale(0.6) },
@@ -211,7 +207,7 @@ const animations = {
     );
   },
   zoomInLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       { ...translate3d(DISTANCE, 0, 0), ...scale(0.6) },
@@ -220,10 +216,10 @@ const animations = {
     );
   },
   zoomOut(element, options) {
-    createScrollAnimation(element, presets.zoom, scale(1.2), {}, options);
+    createScrollTriggerTween(element, presets.zoom, scale(1.2), {}, options);
   },
   zoomOutUp(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       {
@@ -235,7 +231,7 @@ const animations = {
     );
   },
   zoomOutDown(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       {
@@ -247,7 +243,7 @@ const animations = {
     );
   },
   zoomOutRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       {
@@ -259,7 +255,7 @@ const animations = {
     );
   },
   zoomOutLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.zoom,
       {
@@ -271,7 +267,7 @@ const animations = {
     );
   },
   slideUp(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.slide,
       {
@@ -282,7 +278,7 @@ const animations = {
     );
   },
   slideDown(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.slide,
       {
@@ -293,7 +289,7 @@ const animations = {
     );
   },
   slideRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.slide,
       {
@@ -304,7 +300,7 @@ const animations = {
     );
   },
   slideLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.slide,
       {
@@ -315,7 +311,7 @@ const animations = {
     );
   },
   flipLeft(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.flip,
       {
@@ -327,7 +323,7 @@ const animations = {
     );
   },
   flipRight(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.flip,
       {
@@ -339,7 +335,7 @@ const animations = {
     );
   },
   flipUp(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.flip,
       {
@@ -351,7 +347,7 @@ const animations = {
     );
   },
   flipDown(element, options) {
-    createScrollAnimation(
+    createScrollTriggerTween(
       element,
       presets.flip,
       {
@@ -362,43 +358,6 @@ const animations = {
       options,
     );
   },
-} satisfies Record<string, (element: Element, options?: Options) => void>;
+} satisfies Record<string, AnimationFunction>;
 
 export default animations;
-
-function translate3d(
-  x: number | string,
-  y: number | string,
-  z: number | string,
-): Pick<gsap.TweenVars, "x" | "y" | "z"> {
-  return { x, y, z };
-}
-
-function rotateY(y: number | string): Pick<gsap.TweenVars, "rotateY"> {
-  return { rotateY: y };
-}
-
-function rotateX(x: number | string): Pick<gsap.TweenVars, "rotateX"> {
-  return { rotateX: x };
-}
-
-function scale(
-  x: number,
-  y?: number,
-): Pick<gsap.TweenVars, "scale" | "scaleX" | "scaleY"> {
-  if (typeof y === "number") {
-    return {
-      scaleX: x,
-      scaleY: y,
-    };
-  }
-  return {
-    scale: x,
-  };
-}
-
-function perspective(value: number): gsap.TweenVars {
-  return {
-    perspective: value,
-  };
-}
