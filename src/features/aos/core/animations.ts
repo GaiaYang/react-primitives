@@ -48,6 +48,23 @@ const presets = {
       ...scale(1),
     },
   },
+  slide: {
+    from: {
+      visibility: "hidden",
+      transitionProperty: "transform",
+    },
+    to: {
+      visibility: "visible",
+      ...translate3d(0, 0, 0),
+    },
+  },
+  flip: {
+    from: {
+      backfaceVisibility: "hidden",
+      transitionProperty: "transform",
+    },
+    to: {},
+  },
 } satisfies PresetMap;
 
 /** 建立 ScrollTrigger 動畫 */
@@ -76,6 +93,9 @@ function createScrollAnimation(
         trigger: element,
         toggleActions: "play none none reverse",
         once,
+        markers: true,
+        start: anchorPlacement.replace("-", " "),
+        end: `+=${offset}`,
       },
       ease: easing,
       duration: duration / 1000,
@@ -250,19 +270,122 @@ const animations = {
       options,
     );
   },
+  slideUp(element, options) {
+    createScrollAnimation(
+      element,
+      presets.slide,
+      {
+        ...translate3d(0, "100%", 0),
+      },
+      {},
+      options,
+    );
+  },
+  slideDown(element, options) {
+    createScrollAnimation(
+      element,
+      presets.slide,
+      {
+        ...translate3d(0, "-100%", 0),
+      },
+      {},
+      options,
+    );
+  },
+  slideRight(element, options) {
+    createScrollAnimation(
+      element,
+      presets.slide,
+      {
+        ...translate3d("-100%", 0, 0),
+      },
+      {},
+      options,
+    );
+  },
+  slideLeft(element, options) {
+    createScrollAnimation(
+      element,
+      presets.slide,
+      {
+        ...translate3d("100%", 0, 0),
+      },
+      {},
+      options,
+    );
+  },
+  flipLeft(element, options) {
+    createScrollAnimation(
+      element,
+      presets.flip,
+      {
+        ...perspective(2500),
+        ...rotateY("-100deg"),
+      },
+      { ...perspective(2500), ...rotateY(0) },
+      options,
+    );
+  },
+  flipRight(element, options) {
+    createScrollAnimation(
+      element,
+      presets.flip,
+      {
+        ...perspective(2500),
+        ...rotateY("100deg"),
+      },
+      { ...perspective(2500), ...rotateY(0) },
+      options,
+    );
+  },
+  flipUp(element, options) {
+    createScrollAnimation(
+      element,
+      presets.flip,
+      {
+        ...perspective(2500),
+        ...rotateX("-100deg"),
+      },
+      { ...perspective(2500), ...rotateX(0) },
+      options,
+    );
+  },
+  flipDown(element, options) {
+    createScrollAnimation(
+      element,
+      presets.flip,
+      {
+        ...perspective(2500),
+        ...rotateX("100deg"),
+      },
+      { ...perspective(2500), ...rotateX(0) },
+      options,
+    );
+  },
 } satisfies Record<string, (element: Element, options?: Options) => void>;
 
 export default animations;
 
 function translate3d(
-  x: number,
-  y: number,
-  z: number,
+  x: number | string,
+  y: number | string,
+  z: number | string,
 ): Pick<gsap.TweenVars, "x" | "y" | "z"> {
   return { x, y, z };
 }
 
-function scale(x: number, y?: number): gsap.TweenVars {
+function rotateY(y: number | string): Pick<gsap.TweenVars, "rotateY"> {
+  return { rotateY: y };
+}
+
+function rotateX(x: number | string): Pick<gsap.TweenVars, "rotateX"> {
+  return { rotateX: x };
+}
+
+function scale(
+  x: number,
+  y?: number,
+): Pick<gsap.TweenVars, "scale" | "scaleX" | "scaleY"> {
   if (typeof y === "number") {
     return {
       scaleX: x,
@@ -271,5 +394,11 @@ function scale(x: number, y?: number): gsap.TweenVars {
   }
   return {
     scale: x,
+  };
+}
+
+function perspective(value: number): gsap.TweenVars {
+  return {
+    perspective: value,
   };
 }
