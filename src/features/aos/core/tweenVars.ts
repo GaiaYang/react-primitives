@@ -1,8 +1,8 @@
 export function translate3d(
   x: number | string,
   y: number | string,
-  z: number | string,
-): Pick<gsap.TweenVars, "x" | "y" | "z"> {
+  z: number,
+): Pick<gsap.TweenVars, "x" | "y" | "z" | "xPercent" | "yPercent"> {
   return { x, y, z };
 }
 
@@ -31,6 +31,6 @@ export function scale(
 
 export function perspective(value: number): gsap.TweenVars {
   return {
-    perspective: value,
+    transformPerspective: value,
   };
 }

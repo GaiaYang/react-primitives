@@ -61,7 +61,7 @@ export default function useAOSInitial<E extends HTMLElement>() {
         cleanAnimations();
       };
     },
-    { scope: containerRef },
+    { scope: containerRef, dependencies: [] },
   );
 
   return { containerRef };
