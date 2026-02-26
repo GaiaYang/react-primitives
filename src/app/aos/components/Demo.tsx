@@ -14,6 +14,7 @@ interface Option {
 
 const options: Option[] = [
   { label: "全部展示", value: "all" },
+  { label: "動態切換參數", value: "dynamic" },
   { label: "js的流動版面", value: "react-responsive" },
 ];
 
@@ -50,6 +51,8 @@ function renderAOS(type: string) {
       return <AllExhibit />;
     case "react-responsive":
       return <JsResponsive />;
+    case "dynamic":
+      return <DynamicChange />;
     default:
       return null;
   }
@@ -85,4 +88,47 @@ function AllExhibit() {
 
 function JsResponsive() {
   return <div></div>;
+}
+
+function DynamicChange() {
+  const [animation, setAnimation] = useState(animations[0]);
+  return (
+    <div className="grid w-full gap-2">
+      <div className="flex flex-wrap gap-[inherit]">
+        {animations.map((item) => (
+          <button
+            key={item}
+            onClick={() => {
+              setAnimation(item);
+            }}
+            className={cn("btn", { "btn-primary": animation === item })}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      {Array(10)
+        .fill(null)
+        .map((item, index) => (
+          <div
+            key={`${animation}-${index}`}
+            data-aos={animation}
+            className={cn(
+              "rounded-box border-base-content/50 h-80 border",
+              bgColors[index],
+              "flex items-center justify-center",
+            )}
+          >
+            <p
+              className={cn(
+                "text-3xl font-semibold",
+                index % 11 >= 5 ? "text-white" : "text-black",
+              )}
+            >
+              {item}
+            </p>
+          </div>
+        ))}
+    </div>
+  );
 }

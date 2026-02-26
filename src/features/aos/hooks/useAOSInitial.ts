@@ -6,48 +6,60 @@ import initScrollAnimations from "../core/initScrollAnimations";
 
 gsap.registerPlugin(useGSAP);
 
+const AOS_PROPS_KEYS = [
+  "data-aos",
+  "data-aos-offset",
+  "data-aos-delay",
+  "data-aos-duration",
+  "data-aos-easing",
+  "data-aos-mirror",
+  "data-aos-once",
+  "data-aos-anchor-placement",
+];
+
 export default function useAOSInitial<E extends HTMLElement>() {
   const containerRef = useRef<E | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
-  const animationsRef = useRef<gsap.core.Tween[]>([]);
+  // const animationsRef = useRef<gsap.core.Tween[]>([]);
 
   useGSAP(
-    () => {
-      if (!containerRef.current) return;
+    (context, contextSafe) => {
+      if (!containerRef.current || !contextSafe || !context) return;
 
-      function cleanAnimations() {
-        animationsRef.current.forEach((anim) => anim.kill());
-        animationsRef.current = [];
-      }
-
-      function cleanMutation() {
-        if (observerRef.current) {
-          observerRef.current.disconnect();
-          observerRef.current = null;
-        }
-      }
-
-      function init() {
-        cleanAnimations();
+      const init = () => {
+        context.kill();
 
         const elements = gsap.utils.toArray<HTMLElement>(
           "[data-aos]",
           containerRef.current,
         );
 
-        if (!elements.length) return;
-
-        animationsRef.current = initScrollAnimations(elements);
-      }
+        contextSafe(initScrollAnimations)(elements);
+      };
 
       const handleMutation: MutationCallback = (mutations) => {
+        let shouldInit = false;
         for (const mutation of mutations) {
-          const allNodes = [...mutation.addedNodes, ...mutation.removedNodes];
-
-          if (containsAOSNode(allNodes)) {
-            init();
+          if (
+            mutation.type === "attributes" &&
+            mutation.attributeName?.startsWith("data-aos")
+          ) {
+            shouldInit = true;
             break;
           }
+
+          if (mutation.type === "childList") {
+            const allNodes = [...mutation.addedNodes, ...mutation.removedNodes];
+
+            if (containsAOSNode(allNodes)) {
+              shouldInit = true;
+              break;
+            }
+          }
+        }
+
+        if (shouldInit) {
+          init();
         }
       };
 
@@ -57,11 +69,15 @@ export default function useAOSInitial<E extends HTMLElement>() {
       observerRef.current.observe(containerRef.current, {
         childList: true,
         subtree: true,
+        attributes: true,
+        attributeFilter: AOS_PROPS_KEYS,
       });
 
       return () => {
-        cleanAnimations();
-        cleanMutation();
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+          observerRef.current = null;
+        }
       };
     },
     { scope: containerRef, dependencies: [] },
