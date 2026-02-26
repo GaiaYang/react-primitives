@@ -17,7 +17,9 @@ type AnimationPreset = {
   to: gsap.TweenVars;
 };
 
-type PresetMap = Record<string, AnimationPreset>;
+interface AnimationConfig extends AnimationPreset {
+  preset: AnimationPreset;
+}
 
 /** 動畫預設配置 */
 const presets = {
@@ -59,14 +61,14 @@ const presets = {
     },
     to: {},
   },
-} satisfies PresetMap;
+} satisfies Record<string, AnimationPreset>;
 
 /** 建立 ScrollTrigger 動畫 */
 function createScrollTriggerTween(
   element: Element,
   preset: AnimationPreset,
-  fromVars?: gsap.TweenVars,
-  toVars?: gsap.TweenVars,
+  fromVars: gsap.TweenVars,
+  toVars: gsap.TweenVars,
   options?: ScrollAnimationOptions,
 ) {
   const { offset, delay, duration, easing, once, mirror, anchorPlacement } = {
@@ -84,12 +86,12 @@ function createScrollTriggerTween(
       ...preset.to,
       ...toVars,
       scrollTrigger: {
+        // markers: true,
         trigger: element,
         toggleActions: mirror
           ? "play play reverse none"
           : "play none none reverse",
         once,
-        markers: true,
         start: anchorPlacement.replace("-", " "),
         end: `+=${offset}`,
       },
@@ -100,264 +102,172 @@ function createScrollTriggerTween(
   );
 }
 
-const animations = {
-  fade(element, options) {
-    createScrollTriggerTween(element, presets.fade, {}, {}, options);
+const config = {
+  fade: { preset: presets.fade, from: {}, to: {} },
+  fadeUp: {
+    preset: presets.fade,
+    from: translate3d(0, DISTANCE, 0),
+    to: {},
   },
-  fadeUp(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(0, DISTANCE, 0),
-      {},
-      options,
-    );
+  fadeDown: {
+    preset: presets.fade,
+    from: translate3d(0, -DISTANCE, 0),
+    to: {},
   },
-  fadeDown(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(0, -DISTANCE, 0),
-      {},
-      options,
-    );
+  fadeLeft: {
+    preset: presets.fade,
+    from: translate3d(DISTANCE, 0, 0),
+    to: {},
   },
-  fadeRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(-DISTANCE, 0, 0),
-      {},
-      options,
-    );
+  fadeRight: {
+    preset: presets.fade,
+    from: translate3d(-DISTANCE, 0, 0),
+    to: {},
   },
-  fadeLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(DISTANCE, 0, 0),
-      {},
-      options,
-    );
+  fadeUpRight: {
+    preset: presets.fade,
+    from: translate3d(-DISTANCE, DISTANCE, 0),
+    to: {},
   },
-  fadeUpRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(-DISTANCE, DISTANCE, 0),
-      {},
-      options,
-    );
+  fadeUpLeft: {
+    preset: presets.fade,
+    from: translate3d(DISTANCE, DISTANCE, 0),
+    to: {},
   },
-  fadeUpLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(DISTANCE, DISTANCE, 0),
-      {},
-      options,
-    );
+  fadeDownRight: {
+    preset: presets.fade,
+    from: translate3d(-DISTANCE, -DISTANCE, 0),
+    to: {},
   },
-  fadeDownRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(-DISTANCE, -DISTANCE, 0),
-      {},
-      options,
-    );
+  fadeDownLeft: {
+    preset: presets.fade,
+    from: translate3d(DISTANCE, -DISTANCE, 0),
+    to: {},
   },
-  fadeDownLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.fade,
-      translate3d(DISTANCE, -DISTANCE, 0),
-      {},
-      options,
-    );
+  flipUp: {
+    preset: presets.flip,
+    from: {
+      ...perspective(2500),
+      ...rotateX("-100deg"),
+    },
+    to: { ...perspective(2500), ...rotateX(0) },
   },
-  zoomIn(element, options) {
-    createScrollTriggerTween(element, presets.zoom, scale(0.6), {}, options);
+  flipDown: {
+    preset: presets.flip,
+    from: {
+      ...perspective(2500),
+      ...rotateX("100deg"),
+    },
+    to: { ...perspective(2500), ...rotateX(0) },
   },
-  zoomInUp(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      { ...translate3d(0, DISTANCE, 0), ...scale(0.6) },
-      {},
-      options,
-    );
+  flipLeft: {
+    preset: presets.flip,
+    from: {
+      ...perspective(2500),
+      ...rotateY("-100deg"),
+    },
+    to: { ...perspective(2500), ...rotateY(0) },
   },
-  zoomInDown(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      { ...translate3d(0, -DISTANCE, 0), ...scale(0.6) },
-      {},
-      options,
-    );
+  flipRight: {
+    preset: presets.flip,
+    from: {
+      ...perspective(2500),
+      ...rotateY("100deg"),
+    },
+    to: { ...perspective(2500), ...rotateY(0) },
   },
-  zoomInRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      { ...translate3d(-DISTANCE, 0, 0), ...scale(0.6) },
-      {},
-      options,
-    );
+  slideUp: {
+    preset: presets.slide,
+    from: translate3d(0, "100%", 0),
+    to: {},
   },
-  zoomInLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      { ...translate3d(DISTANCE, 0, 0), ...scale(0.6) },
-      {},
-      options,
-    );
+  slideDown: {
+    preset: presets.slide,
+    from: translate3d(0, "-100%", 0),
+    to: {},
   },
-  zoomOut(element, options) {
-    createScrollTriggerTween(element, presets.zoom, scale(1.2), {}, options);
+  slideLeft: {
+    preset: presets.slide,
+    from: translate3d("100%", 0, 0),
+    to: {},
   },
-  zoomOutUp(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      {
-        ...translate3d(0, DISTANCE, 0),
-        ...scale(1.2),
-      },
-      {},
-      options,
-    );
+  slideRight: {
+    preset: presets.slide,
+    from: translate3d("-100%", 0, 0),
+    to: {},
   },
-  zoomOutDown(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      {
-        ...translate3d(0, -DISTANCE, 0),
-        ...scale(1.2),
-      },
-      {},
-      options,
-    );
+  zoomIn: { preset: presets.zoom, from: scale(0.6), to: {} },
+  zoomInUp: {
+    preset: presets.zoom,
+    from: { ...translate3d(0, DISTANCE, 0), ...scale(0.6) },
+    to: {},
   },
-  zoomOutRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      {
-        ...translate3d(-DISTANCE, 0, 0),
-        ...scale(1.2),
-      },
-      {},
-      options,
-    );
+  zoomInDown: {
+    preset: presets.zoom,
+    from: { ...translate3d(0, -DISTANCE, 0), ...scale(0.6) },
+    to: {},
   },
-  zoomOutLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.zoom,
-      {
-        ...translate3d(DISTANCE, 0, 0),
-        ...scale(1.2),
-      },
-      {},
-      options,
-    );
+  zoomInLeft: {
+    preset: presets.zoom,
+    from: { ...translate3d(DISTANCE, 0, 0), ...scale(0.6) },
+    to: {},
   },
-  slideUp(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.slide,
-      {
-        ...translate3d(0, "100%", 0),
-      },
-      {},
-      options,
-    );
+  zoomInRight: {
+    preset: presets.zoom,
+    from: { ...translate3d(-DISTANCE, 0, 0), ...scale(0.6) },
+    to: {},
   },
-  slideDown(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.slide,
-      {
-        ...translate3d(0, "-100%", 0),
-      },
-      {},
-      options,
-    );
+  zoomOut: { preset: presets.zoom, from: scale(1.2), to: {} },
+  zoomOutUp: {
+    preset: presets.zoom,
+    from: {
+      ...translate3d(0, DISTANCE, 0),
+      ...scale(1.2),
+    },
+    to: {},
   },
-  slideRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.slide,
-      {
-        ...translate3d("-100%", 0, 0),
-      },
-      {},
-      options,
-    );
+  zoomOutDown: {
+    preset: presets.zoom,
+    from: {
+      ...translate3d(0, -DISTANCE, 0),
+      ...scale(1.2),
+    },
+    to: {},
   },
-  slideLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.slide,
-      {
-        ...translate3d("100%", 0, 0),
-      },
-      {},
-      options,
-    );
+  zoomOutLeft: {
+    preset: presets.zoom,
+    from: {
+      ...translate3d(DISTANCE, 0, 0),
+      ...scale(1.2),
+    },
+    to: {},
   },
-  flipLeft(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.flip,
-      {
-        ...perspective(2500),
-        ...rotateY("-100deg"),
-      },
-      { ...perspective(2500), ...rotateY(0) },
-      options,
-    );
+  zoomOutRight: {
+    preset: presets.zoom,
+    from: {
+      ...translate3d(-DISTANCE, 0, 0),
+      ...scale(1.2),
+    },
+    to: {},
   },
-  flipRight(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.flip,
-      {
-        ...perspective(2500),
-        ...rotateY("100deg"),
-      },
-      { ...perspective(2500), ...rotateY(0) },
-      options,
-    );
-  },
-  flipUp(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.flip,
-      {
-        ...perspective(2500),
-        ...rotateX("-100deg"),
-      },
-      { ...perspective(2500), ...rotateX(0) },
-      options,
-    );
-  },
-  flipDown(element, options) {
-    createScrollTriggerTween(
-      element,
-      presets.flip,
-      {
-        ...perspective(2500),
-        ...rotateX("100deg"),
-      },
-      { ...perspective(2500), ...rotateX(0) },
-      options,
-    );
-  },
-} satisfies Record<string, AnimationFunction>;
+} satisfies Record<string, AnimationConfig>;
+
+function createAnimations<T extends Record<string, AnimationConfig>>(
+  config: T,
+): { [K in keyof T]: AnimationFunction } {
+  const result = {} as Record<keyof T, AnimationFunction>;
+  const keys = Object.keys(config) as Array<keyof T>;
+
+  for (const key of keys) {
+    const { preset, from, to } = config[key];
+
+    result[key] = (element, options) =>
+      createScrollTriggerTween(element, preset, from, to, options);
+  }
+
+  return result;
+}
+
+const animations = createAnimations(config);
 
 export default animations;

@@ -2,7 +2,7 @@ import useAOSInitial from "./hooks/useAOSInitial";
 
 export type {
   ScrollAnimationOptions,
-  Animation,
+  AOSAnimation,
   SlideAnimation,
   FadeAnimation,
   FlipAnimation,

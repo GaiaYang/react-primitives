@@ -1,4 +1,4 @@
-import type { ScrollAnimationOptions, Animation } from "../types";
+import type { ScrollAnimationOptions, AOSAnimation } from "../types";
 
 import animations, { type AnimationFunction } from "./animations";
 import { DEFAULT_OPTIONS } from "./config";
@@ -22,7 +22,7 @@ const AOS_ATTRIBUTE_MAP = {
   "data-aos-anchor-placement": "anchorPlacement",
 } satisfies Record<`data-aos-${DataKeys}`, keyof ScrollAnimationOptions>;
 
-const ANIMATION_REGISTRY = {
+const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
   fade: animations.fade,
   "fade-up": animations.fadeUp,
   "fade-down": animations.fadeDown,
@@ -50,11 +50,11 @@ const ANIMATION_REGISTRY = {
   "zoom-out-down": animations.zoomOutDown,
   "zoom-out-left": animations.zoomOutLeft,
   "zoom-out-right": animations.zoomOutRight,
-} satisfies Record<Animation, AnimationFunction>;
+};
 
 export default function initScrollAnimations<E extends Element>(elements: E[]) {
   for (const element of elements) {
-    const animate = element.getAttribute("data-aos") as Animation | null;
+    const animate = element.getAttribute("data-aos") as AOSAnimation | null;
     if (!animate) continue;
 
     const handleAnimation = ANIMATION_REGISTRY[animate];
