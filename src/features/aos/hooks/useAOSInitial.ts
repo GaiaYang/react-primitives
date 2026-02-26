@@ -6,63 +6,78 @@ import initScrollAnimations from "../core/initScrollAnimations";
 
 gsap.registerPlugin(useGSAP);
 
-const AOS_PROPS_KEY = [
-  "data-aos",
-  "data-aos-offset",
-  "data-aos-delay",
-  "data-aos-duration",
-  "data-aos-easing",
-  "data-aos-mirror",
-  "data-aos-once",
-  "data-aos-anchor-placement",
-];
-
 export default function useAOSInitial<E extends HTMLElement>() {
   const containerRef = useRef<E | null>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
+  const animationsRef = useRef<gsap.core.Tween[]>([]);
 
   useGSAP(
-    (context) => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      let animations: gsap.core.Tween[] = [];
+    () => {
+      if (!containerRef.current) return;
 
       function cleanAnimations() {
-        animations.forEach((anim) => anim.kill());
+        animationsRef.current.forEach((anim) => anim.kill());
+        animationsRef.current = [];
+      }
+
+      function cleanMutation() {
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+          observerRef.current = null;
+        }
       }
 
       function init() {
         cleanAnimations();
-        animations = [];
 
-        const selector = context.selector;
-        if (!selector) return;
+        const elements = gsap.utils.toArray<HTMLElement>(
+          "[data-aos]",
+          containerRef.current,
+        );
 
-        const boxes = selector("[data-aos]") as HTMLElement[];
-        if (!boxes.length) return;
+        if (!elements.length) return;
 
-        animations = initScrollAnimations(boxes);
+        animationsRef.current = initScrollAnimations(elements);
       }
 
-      // 初始執行
+      const handleMutation: MutationCallback = (mutations) => {
+        for (const mutation of mutations) {
+          const allNodes = [...mutation.addedNodes, ...mutation.removedNodes];
+
+          if (containsAOSNode(allNodes)) {
+            init();
+            break;
+          }
+        }
+      };
+
       init();
 
-      // 監聽子元素變化
-      const observer = new MutationObserver(init);
-
-      observer.observe(container, {
+      observerRef.current = new MutationObserver(handleMutation);
+      observerRef.current.observe(containerRef.current, {
         childList: true,
         subtree: true,
       });
 
-      // 清理
       return () => {
-        observer.disconnect();
         cleanAnimations();
+        cleanMutation();
       };
     },
     { scope: containerRef, dependencies: [] },
   );
 
   return { containerRef };
+}
+
+function containsAOSNode(nodes: Node[]) {
+  for (const node of nodes) {
+    if (!(node instanceof HTMLElement)) continue;
+
+    if (node.matches?.("[data-aos]") || node.querySelector?.("[data-aos]")) {
+      return true;
+    }
+  }
+
+  return false;
 }

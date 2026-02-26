@@ -76,6 +76,9 @@ function createScrollTriggerTween(
     ...options,
   };
 
+  const [elementEdge, viewportEdge] = anchorPlacement.split("-");
+  const start = `${elementEdge} ${viewportEdge}-=${offset}`;
+
   return gsap.fromTo(
     element,
     {
@@ -92,8 +95,7 @@ function createScrollTriggerTween(
           ? "play play reverse none"
           : "play none none reverse",
         once,
-        start: anchorPlacement.replace("-", " "),
-        end: `+=${offset}`,
+        start,
       },
       ease: easing,
       duration: duration / 1000,
