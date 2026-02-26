@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 export type AnimationFunction = (
   element: Element,
   options?: ScrollAnimationOptions,
-) => void;
+) => gsap.core.Tween;
 
 type AnimationPreset = {
   from: gsap.TweenVars;

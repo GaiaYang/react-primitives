@@ -53,6 +53,8 @@ const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
 };
 
 export default function initScrollAnimations<E extends Element>(elements: E[]) {
+  const result = [];
+
   for (const element of elements) {
     const animate = element.getAttribute("data-aos") as AOSAnimation | null;
     if (!animate) continue;
@@ -61,9 +63,11 @@ export default function initScrollAnimations<E extends Element>(elements: E[]) {
 
     if (handleAnimation) {
       const options = parseAttributes(element);
-      handleAnimation(element, options);
+      result.push(handleAnimation(element, options));
     }
   }
+
+  return result;
 }
 
 function parseAttributes<E extends Element>(element: E) {
