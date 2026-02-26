@@ -1,6 +1,8 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+
+import initScrollAnimations from "../core/initScrollAnimations";
 
 gsap.registerPlugin(useGSAP);
 
@@ -15,23 +17,18 @@ const AOS_PROPS_KEY = [
   "data-aos-anchor-placement",
 ];
 
-export default function useAOSInitial() {
-  const containerRef = useRef<HTMLElement | null>(null);
+export default function useAOSInitial<E extends HTMLElement>() {
+  const containerRef = useRef<E | null>(null);
 
-  const ref = useCallback((node: HTMLElement | null) => {
-    function cleanup() {
-      if (containerRef.current) {
-        containerRef.current = null;
+  useGSAP(
+    (context) => {
+      if (context.selector) {
+        const boxes = context.selector("[data-aos]") as HTMLDivElement[];
+        initScrollAnimations(boxes);
       }
-    }
-    if (node) {
-      containerRef.current = node;
-    } else {
-      cleanup();
-    }
+    },
+    { scope: containerRef },
+  );
 
-    return cleanup;
-  }, []);
-
-  return useMemo(() => ({ ref }), [ref]);
+  return { containerRef };
 }

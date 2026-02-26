@@ -1,16 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import cn from "@/utils/cn";
 
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import initScrollAnimations from "@/features/aos/core/initScrollAnimations";
-
+import { useAOSInitial } from "@/features/aos";
 import { animations, bgColors } from "./config";
-
-gsap.registerPlugin(useGSAP);
 
 interface Option {
   label: string;
@@ -23,29 +18,12 @@ const options: Option[] = [
 ];
 
 export default function Demo() {
-  const [show, setShow] = useState(true);
   const [type, setType] = useState(options[0].value);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useGSAP(
-    () => {
-      const boxes = gsap.utils.toArray("[data-aos]") as HTMLDivElement[];
-      initScrollAnimations(boxes);
-    },
-    { scope: containerRef },
-  );
+  const { containerRef } = useAOSInitial<HTMLDivElement>();
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-4 p-4">
-      {false && (
-        <button
-          type="button"
-          onClick={() => setShow((e) => !e)}
-          className="btn"
-        >
-          {`${show ? "隱藏" : "顯示"}`}
-        </button>
-      )}
+    <div ref={containerRef} className="flex flex-col gap-4 overflow-hidden p-4">
       <div role="tablist" className="tabs tabs-box">
         {options.map((item) => (
           <button
@@ -80,7 +58,7 @@ function renderAOS(type: string) {
 /** 展示所有AOS動畫 */
 function AllExhibit() {
   return (
-    <div className="grid w-full gap-2 overflow-hidden">
+    <div className="grid w-full gap-2">
       {animations.map((item, index) => (
         <div
           key={item}
