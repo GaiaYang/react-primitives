@@ -20,7 +20,6 @@ const AOS_PROPS_KEYS = [
 export default function useAOSInitial<E extends HTMLElement>() {
   const containerRef = useRef<E | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
-  // const animationsRef = useRef<gsap.core.Tween[]>([]);
 
   useGSAP(
     (context, contextSafe) => {
@@ -34,7 +33,7 @@ export default function useAOSInitial<E extends HTMLElement>() {
           containerRef.current,
         );
 
-        contextSafe(initScrollAnimations)(elements);
+        initScrollAnimations(elements, contextSafe);
       };
 
       const handleMutation: MutationCallback = (mutations) => {
@@ -90,7 +89,10 @@ function containsAOSNode(nodes: Node[]) {
   for (const node of nodes) {
     if (!(node instanceof HTMLElement)) continue;
 
-    if (node.matches?.("[data-aos]") || node.querySelector?.("[data-aos]")) {
+    if (
+      node.matches("[data-aos]") ||
+      node.querySelector<HTMLElement>("[data-aos]")
+    ) {
       return true;
     }
   }

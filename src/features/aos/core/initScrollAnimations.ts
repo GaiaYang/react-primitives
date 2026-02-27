@@ -52,7 +52,10 @@ const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
   "zoom-out-right": animations.zoomOutRight,
 };
 
-export default function initScrollAnimations<E extends Element>(elements: E[]) {
+export default function initScrollAnimations<E extends Element>(
+  elements: E[],
+  contextSafe?: gsap.ContextSafeFunc,
+) {
   const result = [];
 
   for (const element of elements) {
@@ -63,7 +66,7 @@ export default function initScrollAnimations<E extends Element>(elements: E[]) {
 
     if (handleAnimation) {
       const options = parseAttributes(element);
-      result.push(handleAnimation(element, options));
+      result.push(handleAnimation(element, contextSafe, options));
     }
   }
 

@@ -9,6 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export type AnimationFunction = (
   element: Element,
+  contextSafe?: gsap.ContextSafeFunc,
   options?: ScrollAnimationOptions,
 ) => gsap.core.Tween;
 
@@ -275,8 +276,14 @@ function createAnimations<T extends Record<string, AnimationConfig>>(
   for (const key of keys) {
     const { preset, from, to } = config[key];
 
-    result[key] = (element, options) =>
-      createScrollTriggerTween(element, preset, from, to, options);
+    result[key] = (element, contextSafe, options) => {
+      const params = [element, preset, from, to, options] as const;
+      if (contextSafe) {
+        return contextSafe(createScrollTriggerTween)(...params);
+      } else {
+        return createScrollTriggerTween(...params);
+      }
+    };
   }
 
   return result;
