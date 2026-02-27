@@ -79,18 +79,37 @@ function percentToNumber(value: string) {
   return parseFloat(value.replace("%", "")) / 100;
 }
 
+/** 將角度轉成弧度 */
 function degToRad(deg: string) {
   return (parseFloat(deg) * Math.PI) / 180;
 }
 
+/** 計算 rotate + perspective 投影占用的尺寸 */
+function computeProjectedSize(
+  size: number,
+  rotate: string,
+  perspective: number,
+) {
+  const rad = degToRad(rotate);
+  const half = size / 2;
+  const sin = Math.sin(rad);
+  const cos = Math.cos(rad);
+  const z = half * sin;
+  const projected = half * cos * (perspective / (perspective - z)) * 2;
+  return (size + projected) / 2;
+}
+
 /** 補償垂直方向造成的位置偏移 */
-function offsetFixed(offset: number, vars: gsap.TweenVars, height: number) {
+function offsetFixed(
+  offset: number,
+  vars: gsap.TweenVars,
+  height: number,
+  width: number,
+) {
   let result = offset;
 
-  // 取得各 transform 參數
   const _y = vars.translateY ?? vars.y ?? 0;
 
-  // 處理 translateY
   if (typeof _y === "number") {
     result -= _y;
   } else if (typeof _y === "string" && _y.includes("%")) {
@@ -100,7 +119,6 @@ function offsetFixed(offset: number, vars: gsap.TweenVars, height: number) {
   const _scale =
     [vars.scaleY, vars.scale].find((v) => typeof v === "number") ?? 1;
 
-  // 處理 scale
   if (_scale !== 1) {
     result -= (height * (1 - _scale)) / 2;
   }
@@ -109,15 +127,13 @@ function offsetFixed(offset: number, vars: gsap.TweenVars, height: number) {
     [vars.perspective, vars.transformPerspective].find(
       (v) => typeof v === "number",
     ) ?? 0;
+
   if (typeof vars.rotateX === "string") {
-    const rad = degToRad(vars.rotateX);
-    const halfHeight = height / 2;
-    const sin = Math.sin(rad);
-    const cos = Math.cos(rad);
-    const z = halfHeight * sin;
-    const projected =
-      halfHeight * cos * (_perspective / (_perspective - z)) * 2;
-    result -= (height + projected) / 2;
+    result -= computeProjectedSize(height, vars.rotateX, _perspective);
+  }
+
+  if (vars.rotateY === "string") {
+    result -= computeProjectedSize(width, vars.rotateY, _perspective);
   }
 
   return Math.floor(result);
@@ -155,7 +171,7 @@ function createScrollTriggerTween(
       once,
       start: scrollTriggerStart(
         anchorPlacement,
-        offsetFixed(offset, _fromVars, rect.height),
+        offsetFixed(offset, _fromVars, rect.height, rect.width),
       ),
     },
     ease: easing,
