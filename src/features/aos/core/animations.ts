@@ -74,71 +74,6 @@ function scrollTriggerStart(anchorPlacement: AnchorPlacement, offset: number) {
   return `${anchor}${fix}`;
 }
 
-/** 將百分比轉成 0~1 數值 */
-function percentToNumber(value: string) {
-  return parseFloat(value.replace("%", "")) / 100;
-}
-
-/** 將角度轉成弧度 */
-function degToRad(deg: string) {
-  return (parseFloat(deg) * Math.PI) / 180;
-}
-
-/** 計算 rotate + perspective 投影占用的尺寸 */
-function computeProjectedSize(
-  size: number,
-  rotate: string,
-  perspective: number,
-) {
-  const rad = degToRad(rotate);
-  const half = size / 2;
-  const sin = Math.sin(rad);
-  const cos = Math.cos(rad);
-  const z = half * sin;
-  const projected = half * cos * (perspective / (perspective - z)) * 2;
-  return (size + projected) / 2;
-}
-
-/** 補償垂直方向造成的位置偏移 */
-function offsetFixed(
-  offset: number,
-  vars: gsap.TweenVars,
-  height: number,
-  width: number,
-) {
-  let result = offset;
-
-  const _y = vars.translateY ?? vars.y ?? 0;
-
-  if (typeof _y === "number") {
-    result -= _y;
-  } else if (typeof _y === "string" && _y.includes("%")) {
-    result -= height * percentToNumber(_y);
-  }
-
-  const _scale =
-    [vars.scaleY, vars.scale].find((v) => typeof v === "number") ?? 1;
-
-  if (_scale !== 1) {
-    result -= (height * (1 - _scale)) / 2;
-  }
-
-  const _perspective =
-    [vars.perspective, vars.transformPerspective].find(
-      (v) => typeof v === "number",
-    ) ?? 0;
-
-  if (typeof vars.rotateX === "string") {
-    result -= computeProjectedSize(height, vars.rotateX, _perspective);
-  }
-
-  if (vars.rotateY === "string") {
-    result -= computeProjectedSize(width, vars.rotateY, _perspective);
-  }
-
-  return Math.floor(result);
-}
-
 /** 建立 ScrollTrigger 動畫 */
 function createScrollTriggerTween(
   element: Element,
@@ -152,32 +87,33 @@ function createScrollTriggerTween(
     ...options,
   };
 
-  const rect = element.getBoundingClientRect();
+  const container = element.parentElement?.hasAttribute("data-aos-container")
+    ? element.parentElement
+    : null;
 
-  const _fromVars = {
-    ...preset.from,
-    ...fromVars,
-  };
-
-  return gsap.fromTo(element, _fromVars, {
-    ...preset.to,
-    ...toVars,
-    scrollTrigger: {
-      markers: true,
-      trigger: element,
-      toggleActions: mirror
-        ? "play play reverse none"
-        : "play none none reverse",
-      once,
-      start: scrollTriggerStart(
-        anchorPlacement,
-        offsetFixed(offset, _fromVars, rect.height, rect.width),
-      ),
+  return gsap.fromTo(
+    element,
+    {
+      ...preset.from,
+      ...fromVars,
     },
-    ease: easing,
-    duration: duration / 1000,
-    delay: delay / 1000,
-  });
+    {
+      ...preset.to,
+      ...toVars,
+      scrollTrigger: {
+        // markers: true,
+        trigger: container || element,
+        toggleActions: mirror
+          ? "play play reverse none"
+          : "play none none reverse",
+        once,
+        start: scrollTriggerStart(anchorPlacement, offset),
+      },
+      ease: easing,
+      duration: duration / 1000,
+      delay: delay / 1000,
+    },
+  );
 }
 
 const config = {

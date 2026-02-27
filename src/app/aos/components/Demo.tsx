@@ -44,7 +44,9 @@ export default function Demo() {
         ))}
       </div>
       {renderAOS(type)}
-      <div className="bg-primary fixed bottom-30 left-0 h-px w-16" />
+      <div className="bg-primary fixed bottom-30 left-0 h-px w-20">
+        <span className="text-primary absolute font-semibold">{`當前觸發點`}</span>
+      </div>
     </div>
   );
 }
@@ -67,23 +69,24 @@ function AllExhibit() {
   return (
     <div className="grid w-full gap-2">
       {animations.map((item, index) => (
-        <div
-          key={item}
-          data-aos={item}
-          className={cn(
-            "rounded-box border-base-content/50 h-80 border",
-            bgColors[index],
-            "flex items-center justify-center",
-          )}
-        >
-          <p
+        <div data-aos-container key={item}>
+          <div
+            data-aos={item}
             className={cn(
-              "text-3xl font-semibold",
-              index % 11 >= 5 ? "text-white" : "text-black",
+              "rounded-box border-base-content/50 h-80 border",
+              bgColors[index],
+              "flex items-center justify-center",
             )}
           >
-            {item}
-          </p>
+            <p
+              className={cn(
+                "text-3xl font-semibold",
+                index % 11 >= 5 ? "text-white" : "text-black",
+              )}
+            >
+              {item}
+            </p>
+          </div>
         </div>
       ))}
     </div>
@@ -114,23 +117,24 @@ function DynamicChange() {
       {Array(10)
         .fill(null)
         .map((item, index) => (
-          <div
-            key={`${animation}-${index}`}
-            data-aos={animation}
-            className={cn(
-              "rounded-box border-base-content/50 h-80 border",
-              bgColors[index],
-              "flex items-center justify-center",
-            )}
-          >
-            <p
+          <div data-aos-container key={`${animation}-${index}`}>
+            <div
+              data-aos={animation}
               className={cn(
-                "text-3xl font-semibold",
-                index % 11 >= 5 ? "text-white" : "text-black",
+                "rounded-box border-base-content/50 h-80 border",
+                bgColors[index],
+                "flex items-center justify-center",
               )}
             >
-              {item}
-            </p>
+              <p
+                className={cn(
+                  "text-3xl font-semibold",
+                  index % 11 >= 5 ? "text-white" : "text-black",
+                )}
+              >
+                {item}
+              </p>
+            </div>
           </div>
         ))}
     </div>
