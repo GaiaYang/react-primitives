@@ -17,52 +17,71 @@ const AOS_PROPS_KEYS = [
   "data-aos-anchor-placement",
 ];
 
-export default function useAOSInitial<E extends HTMLElement>() {
+export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
   const containerRef = useRef<E | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+  // 使用 WeakMap 記錄每個元素對應的動畫實例
+  const elementAnimations = useRef<WeakMap<HTMLElement, gsap.core.Tween>>(
+    new WeakMap(),
+  );
 
   useGSAP(
     (context, contextSafe) => {
       if (!containerRef.current || !contextSafe || !context) return;
 
-      const init = () => {
-        context.kill();
-
-        const elements = gsap.utils.toArray<HTMLElement>(
-          "[data-aos]",
-          containerRef.current,
+      // 初始化元素動畫，並存入 WeakMap
+      const initAOSForElements = (elements: HTMLElement[]) => {
+        const newElements = elements.filter(
+          (element) => !elementAnimations.current.has(element),
         );
-
-        initScrollAnimations(elements, contextSafe);
+        if (newElements.length === 0) return;
+        const anims = initScrollAnimations(newElements, contextSafe);
+        newElements.forEach((element, index) => {
+          elementAnimations.current.set(element, anims[index]);
+        });
       };
 
+      // 初次初始化 container 內的所有 [data-aos] 元素
+      initAOSForElements(
+        gsap.utils.toArray<HTMLElement>("[data-aos]", containerRef.current),
+      );
+
       const handleMutation: MutationCallback = (mutations) => {
-        let shouldInit = false;
+        const addedElements: HTMLElement[] = [];
+        const removedElements: HTMLElement[] = [];
+
         for (const mutation of mutations) {
           if (
             mutation.type === "attributes" &&
             mutation.attributeName?.startsWith("data-aos")
           ) {
-            shouldInit = true;
-            break;
+            if (mutation.target instanceof HTMLElement) {
+              addedElements.push(mutation.target);
+            }
           }
 
           if (mutation.type === "childList") {
-            const allNodes = [...mutation.addedNodes, ...mutation.removedNodes];
-
-            if (containsAOSNode(allNodes)) {
-              shouldInit = true;
-              break;
+            for (const node of mutation.addedNodes) {
+              collectAOSNodes(node, addedElements);
+            }
+            for (const node of mutation.removedNodes) {
+              collectAOSNodes(node, removedElements);
             }
           }
         }
 
-        if (shouldInit) {
-          init();
+        // 清理移除的元素動畫
+        for (const element of removedElements) {
+          const anim = elementAnimations.current.get(element);
+          if (anim) {
+            anim.kill();
+            elementAnimations.current.delete(element);
+          }
         }
-      };
 
-      init();
+        // 初始化新增元素動畫
+        initAOSForElements(addedElements);
+      };
 
       observerRef.current = new MutationObserver(handleMutation);
       observerRef.current.observe(containerRef.current, {
@@ -85,17 +104,12 @@ export default function useAOSInitial<E extends HTMLElement>() {
   return { containerRef };
 }
 
-function containsAOSNode(nodes: Node[]) {
-  for (const node of nodes) {
-    if (!(node instanceof HTMLElement)) continue;
+function collectAOSNodes(node: Node, result: HTMLElement[]) {
+  if (!(node instanceof HTMLElement)) return;
 
-    if (
-      node.matches("[data-aos]") ||
-      node.querySelector<HTMLElement>("[data-aos]")
-    ) {
-      return true;
-    }
+  if (node.matches("[data-aos]")) {
+    result.push(node);
   }
 
-  return false;
+  result.push(...Array.from(node.querySelectorAll<HTMLElement>("[data-aos]")));
 }
