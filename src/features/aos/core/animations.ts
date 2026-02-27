@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import type { ScrollAnimationOptions } from "../types";
+import type { AnchorPlacement, ScrollAnimationOptions } from "../types";
 import { DEFAULT_OPTIONS, DISTANCE } from "./config";
 import { translate3d, scale, rotateX, rotateY, perspective } from "./tweenVars";
 
@@ -63,6 +63,66 @@ const presets = {
   },
 } satisfies Record<string, AnimationPreset>;
 
+/** 計算 ScrollTrigger start 語法 */
+function scrollTriggerStart(anchorPlacement: AnchorPlacement, offset: number) {
+  const [v1, v2] = anchorPlacement.split("-");
+  const anchor = `${v1} ${v2}`;
+
+  if (offset === 0 || Number.isNaN(offset)) return anchor;
+
+  const fix = `${offset > 0 ? "-" : "+"}=${Math.abs(offset)}`;
+  return `${anchor}${fix}`;
+}
+
+/** 將百分比轉成 0~1 數值 */
+function percentToNumber(value: string) {
+  return parseFloat(value.replace("%", "")) / 100;
+}
+
+function degToRad(deg: string) {
+  return (parseFloat(deg) * Math.PI) / 180;
+}
+
+/** 補償垂直方向造成的位置偏移 */
+function offsetFixed(offset: number, vars: gsap.TweenVars, height: number) {
+  let result = offset;
+
+  // 取得各 transform 參數
+  const _y = vars.translateY ?? vars.y ?? 0;
+
+  // 處理 translateY
+  if (typeof _y === "number") {
+    result -= _y;
+  } else if (typeof _y === "string" && _y.includes("%")) {
+    result -= height * percentToNumber(_y);
+  }
+
+  const _scale =
+    [vars.scaleY, vars.scale].find((v) => typeof v === "number") ?? 1;
+
+  // 處理 scale
+  if (_scale !== 1) {
+    result -= (height * (1 - _scale)) / 2;
+  }
+
+  const _perspective =
+    [vars.perspective, vars.transformPerspective].find(
+      (v) => typeof v === "number",
+    ) ?? 0;
+  if (typeof vars.rotateX === "string") {
+    const rad = degToRad(vars.rotateX);
+    const halfHeight = height / 2;
+    const sin = Math.sin(rad);
+    const cos = Math.cos(rad);
+    const z = halfHeight * sin;
+    const projected =
+      halfHeight * cos * (_perspective / (_perspective - z)) * 2;
+    result -= (height + projected) / 2;
+  }
+
+  return Math.floor(result);
+}
+
 /** 建立 ScrollTrigger 動畫 */
 function createScrollTriggerTween(
   element: Element,
@@ -76,32 +136,32 @@ function createScrollTriggerTween(
     ...options,
   };
 
-  const [elementEdge, viewportEdge] = anchorPlacement.split("-");
-  const start = `${elementEdge} ${viewportEdge}-=${offset}`;
+  const rect = element.getBoundingClientRect();
 
-  return gsap.fromTo(
-    element,
-    {
-      ...preset.from,
-      ...fromVars,
+  const _fromVars = {
+    ...preset.from,
+    ...fromVars,
+  };
+
+  return gsap.fromTo(element, _fromVars, {
+    ...preset.to,
+    ...toVars,
+    scrollTrigger: {
+      markers: true,
+      trigger: element,
+      toggleActions: mirror
+        ? "play play reverse none"
+        : "play none none reverse",
+      once,
+      start: scrollTriggerStart(
+        anchorPlacement,
+        offsetFixed(offset, _fromVars, rect.height),
+      ),
     },
-    {
-      ...preset.to,
-      ...toVars,
-      scrollTrigger: {
-        // markers: true,
-        trigger: element,
-        toggleActions: mirror
-          ? "play play reverse none"
-          : "play none none reverse",
-        once,
-        start,
-      },
-      ease: easing,
-      duration: duration / 1000,
-      delay: delay / 1000,
-    },
-  );
+    ease: easing,
+    duration: duration / 1000,
+    delay: delay / 1000,
+  });
 }
 
 const config = {

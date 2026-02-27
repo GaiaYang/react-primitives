@@ -24,7 +24,10 @@ export default function Demo() {
   const { containerRef } = useAOSInitial<HTMLDivElement>();
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-4 overflow-hidden p-4">
+    <div
+      ref={containerRef}
+      className="relative flex flex-col gap-4 overflow-hidden p-4"
+    >
       <div role="tablist" className="tabs tabs-box">
         {options.map((item) => (
           <button
@@ -41,6 +44,7 @@ export default function Demo() {
         ))}
       </div>
       {renderAOS(type)}
+      <div className="bg-primary fixed bottom-30 left-0 h-px w-16" />
     </div>
   );
 }
