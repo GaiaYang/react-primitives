@@ -35,9 +35,9 @@ export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
           (element) => !elementAnimations.current.has(element),
         );
         if (newElements.length === 0) return;
-        const anims = initScrollAnimations(newElements, contextSafe);
+        const animates = initScrollAnimations(newElements, contextSafe);
         newElements.forEach((element, index) => {
-          elementAnimations.current.set(element, anims[index]);
+          elementAnimations.current.set(element, animates[index]);
         });
       };
 
@@ -72,9 +72,9 @@ export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
 
         // 清理移除的元素動畫
         for (const element of removedElements) {
-          const anim = elementAnimations.current.get(element);
-          if (anim) {
-            anim.kill();
+          const animate = elementAnimations.current.get(element);
+          if (animate) {
+            animate.kill();
             elementAnimations.current.delete(element);
           }
         }

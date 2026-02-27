@@ -78,6 +78,7 @@ function parseAttributes<E extends Element>(element: E) {
 
   for (const key of Object.keys(AOS_ATTRIBUTE_MAP)) {
     const value = element.getAttribute(key);
+
     if (value) {
       const prop = AOS_ATTRIBUTE_MAP[key as `data-aos-${DataKeys}`];
 

@@ -5,7 +5,9 @@ import { useState } from "react";
 import cn from "@/utils/cn";
 
 import { useAOSInitial } from "@/features/aos";
-import { animations, bgColors } from "./config";
+import { animations, eases, bgColors } from "./config";
+import AnimationCategory from "./AnimationCategory";
+import AnimationEaseing from "./AnimationEaseing";
 
 interface Option {
   label: string;
@@ -19,7 +21,7 @@ const options: Option[] = [
 ];
 
 export default function Demo() {
-  const [type, setType] = useState(options[0].value);
+  const [type, setAnimation] = useState(options[0].value);
 
   const { containerRef } = useAOSInitial<HTMLDivElement>();
 
@@ -35,7 +37,7 @@ export default function Demo() {
             role="tab"
             key={item.value}
             onClick={() => {
-              setType(item.value);
+              setAnimation(item.value);
             }}
             className={cn("tab", { "tab-active": type === item.value })}
           >
@@ -66,12 +68,16 @@ function renderAOS(type: string) {
 
 /** 展示所有AOS動畫 */
 function AllExhibit() {
+  const [easeing, setEaseing] = useState(eases[0]);
+
   return (
-    <div className="grid w-full gap-2">
+    <div className="grid w-full gap-4">
+      <AnimationEaseing onChangeEaseing={setEaseing} />
       {animations.map((item, index) => (
-        <div data-aos-container key={item}>
+        <div data-aos-container key={[item, easeing].join("-")}>
           <div
             data-aos={item}
+            data-aos-easing={easeing}
             className={cn(
               "rounded-box border-base-content/50 h-80 border",
               bgColors[index],
@@ -99,27 +105,19 @@ function JsResponsive() {
 
 function DynamicChange() {
   const [animation, setAnimation] = useState(animations[0]);
+  const [easeing, setEaseing] = useState(eases[0]);
+
   return (
-    <div className="grid w-full gap-2">
-      <div className="flex flex-wrap gap-[inherit]">
-        {animations.map((item) => (
-          <button
-            key={item}
-            onClick={() => {
-              setAnimation(item);
-            }}
-            className={cn("btn", { "btn-primary": animation === item })}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
+    <div className="grid w-full gap-4">
+      <AnimationEaseing onChangeEaseing={setEaseing} />
+      <AnimationCategory onChangeAnimation={setAnimation} />
       {Array(10)
         .fill(null)
-        .map((item, index) => (
-          <div data-aos-container key={`${animation}-${index}`}>
+        .map((_, index) => (
+          <div data-aos-container key={[animation, easeing, index].join("-")}>
             <div
               data-aos={animation}
+              data-aos-easing={easeing}
               className={cn(
                 "rounded-box border-base-content/50 h-80 border",
                 bgColors[index],
@@ -132,7 +130,7 @@ function DynamicChange() {
                   index % 11 >= 5 ? "text-white" : "text-black",
                 )}
               >
-                {item}
+                {animation}
               </p>
             </div>
           </div>
