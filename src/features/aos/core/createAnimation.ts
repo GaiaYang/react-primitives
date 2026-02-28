@@ -52,21 +52,32 @@ const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
   "zoom-out-right": animations.zoomOutRight,
 };
 
-export default function initScrollAnimations<E extends Element>(
+/** 建立動畫元素 */
+export function createAnimation<E extends Element>(
+  element: E,
+  contextSafe?: gsap.ContextSafeFunc,
+) {
+  const animate = element.getAttribute("data-aos") as AOSAnimation | null;
+  if (!animate) return;
+
+  const handleAnimation = ANIMATION_REGISTRY[animate];
+  if (!handleAnimation) return;
+
+  const options = parseAttributes(element);
+  return handleAnimation(element, contextSafe, options);
+}
+
+/** 迴圈建立動畫元素 */
+export function createAnimations<E extends Element>(
   elements: E[],
   contextSafe?: gsap.ContextSafeFunc,
 ) {
   const result = [];
 
   for (const element of elements) {
-    const animate = element.getAttribute("data-aos") as AOSAnimation | null;
-    if (!animate) continue;
-
-    const handleAnimation = ANIMATION_REGISTRY[animate];
-
-    if (handleAnimation) {
-      const options = parseAttributes(element);
-      result.push(handleAnimation(element, contextSafe, options));
+    const animation = createAnimation(element, contextSafe);
+    if (animation) {
+      result.push(animation);
     }
   }
 

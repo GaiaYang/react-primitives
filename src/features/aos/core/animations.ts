@@ -65,7 +65,10 @@ const presets = {
 } satisfies Record<string, AnimationPreset>;
 
 /** 計算 ScrollTrigger start 語法 */
-function scrollTriggerStart(anchorPlacement: AnchorPlacement, offset: number) {
+function scrollTriggerStart(
+  anchorPlacement: AnchorPlacement,
+  offset: number,
+): string {
   const [v1, v2] = anchorPlacement.split("-");
   const anchor = `${v1} ${v2}`;
 
@@ -267,7 +270,7 @@ const config = {
   },
 } satisfies Record<string, AnimationConfig>;
 
-function createAnimations<T extends Record<string, AnimationConfig>>(
+function createTweenMap<T extends Record<string, AnimationConfig>>(
   config: T,
 ): { [K in keyof T]: AnimationFunction } {
   const result = {} as Record<keyof T, AnimationFunction>;
@@ -277,18 +280,17 @@ function createAnimations<T extends Record<string, AnimationConfig>>(
     const { preset, from, to } = config[key];
 
     result[key] = (element, contextSafe, options) => {
-      const params = [element, preset, from, to, options] as const;
-      if (contextSafe) {
-        return contextSafe(createScrollTriggerTween)(...params);
-      } else {
-        return createScrollTriggerTween(...params);
-      }
+      return (
+        contextSafe
+          ? contextSafe(createScrollTriggerTween)
+          : createScrollTriggerTween
+      )(element, preset, from, to, options);
     };
   }
 
   return result;
 }
 
-const animations = createAnimations(config);
+const animations = createTweenMap(config);
 
 export default animations;

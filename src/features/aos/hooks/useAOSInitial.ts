@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import initScrollAnimations from "../core/initScrollAnimations";
+import { createAnimation } from "../core/createAnimation";
 
-gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const AOS_PROPS_KEYS = [
   "data-aos",
@@ -35,10 +36,13 @@ export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
           (element) => !elementAnimations.current.has(element),
         );
         if (newElements.length === 0) return;
-        const animates = initScrollAnimations(newElements, contextSafe);
-        newElements.forEach((element, index) => {
-          elementAnimations.current.set(element, animates[index]);
-        });
+
+        for (const element of newElements) {
+          const animation = createAnimation(element, contextSafe);
+          if (animation) {
+            elementAnimations.current.set(element, animation);
+          }
+        }
       };
 
       // 初次初始化 container 內的所有 [data-aos] 元素
@@ -72,9 +76,9 @@ export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
 
         // 清理移除的元素動畫
         for (const element of removedElements) {
-          const animate = elementAnimations.current.get(element);
-          if (animate) {
-            animate.kill();
+          const animation = elementAnimations.current.get(element);
+          if (animation) {
+            animation.kill();
             elementAnimations.current.delete(element);
           }
         }
