@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import cn from "@/utils/cn";
 
@@ -103,14 +104,35 @@ function JsResponsive() {
   return <div></div>;
 }
 
+const tabs = ["animation", "easeing"];
+
 function DynamicChange() {
+  const [tabIndex, setTabIndex] = useState(0);
   const [animation, setAnimation] = useState(animations[0]);
   const [easeing, setEaseing] = useState(eases[0]);
 
+  useEffect(() => {
+    ScrollTrigger.refresh(true);
+  }, [tabIndex]);
+
   return (
     <div className="grid w-full gap-4">
-      <AnimationEaseing onChangeEaseing={setEaseing} />
-      <AnimationCategory onChangeAnimation={setAnimation} />
+      <div className="tabs tabs-border">
+        {tabs.map((item, index) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => {
+              setTabIndex(index);
+            }}
+            className={cn("tab", { "tab-active": tabIndex === index })}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      {tabIndex === 0 && <AnimationCategory onChangeAnimation={setAnimation} />}
+      {tabIndex === 1 && <AnimationEaseing onChangeEaseing={setEaseing} />}
       {Array(10)
         .fill(null)
         .map((_, index) => (
