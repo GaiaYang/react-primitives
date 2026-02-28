@@ -5,10 +5,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import cn from "@/utils/cn";
 
-import { useAOSInitial } from "@/features/aos";
-import { animations, eases, bgColors } from "./config";
+import { useAOSInitial, toAOSProps } from "@/features/aos";
+import { animations, easings } from "@/features/aos/core/config";
+import { bgColors } from "./config";
 import AnimationCategory from "./AnimationCategory";
-import AnimationEaseing from "./AnimationEaseing";
+import AnimationEasing from "./AnimationEasing";
 
 interface Option {
   label: string;
@@ -69,16 +70,17 @@ function renderAOS(type: string) {
 
 /** 展示所有AOS動畫 */
 function AllExhibit() {
-  const [easeing, setEaseing] = useState(eases[0]);
+  const [easing, setEasing] = useState(easings[0]);
 
   return (
     <div className="grid w-full gap-4">
-      <AnimationEaseing onChangeEaseing={setEaseing} />
+      <AnimationEasing onChangeEasing={setEasing} />
       {animations.map((item, index) => (
-        <div data-aos-container key={[item, easeing].join("-")}>
+        <div data-aos-container key={[item, easing].join("-")}>
           <div
-            data-aos={item}
-            data-aos-easing={easeing}
+            // data-aos={item}
+            // data-aos-easing={easing}
+            {...toAOSProps({ animation: item, easing: easing })}
             className={cn(
               "rounded-box border-base-content/50 h-80 border",
               bgColors[index],
@@ -104,12 +106,12 @@ function JsResponsive() {
   return <div></div>;
 }
 
-const tabs = ["animation", "easeing"];
+const tabs = ["animation", "easing"];
 
 function DynamicChange() {
   const [tabIndex, setTabIndex] = useState(0);
   const [animation, setAnimation] = useState(animations[0]);
-  const [easeing, setEaseing] = useState(eases[0]);
+  const [easing, setEasing] = useState(easings[0]);
 
   useEffect(() => {
     ScrollTrigger.refresh(true);
@@ -132,14 +134,15 @@ function DynamicChange() {
         ))}
       </div>
       {tabIndex === 0 && <AnimationCategory onChangeAnimation={setAnimation} />}
-      {tabIndex === 1 && <AnimationEaseing onChangeEaseing={setEaseing} />}
+      {tabIndex === 1 && <AnimationEasing onChangeEasing={setEasing} />}
       {Array(10)
         .fill(null)
         .map((_, index) => (
-          <div data-aos-container key={[animation, easeing, index].join("-")}>
+          <div data-aos-container key={[animation, easing, index].join("-")}>
             <div
-              data-aos={animation}
-              data-aos-easing={easeing}
+              // data-aos={animation}
+              // data-aos-easing={easing}
+              {...toAOSProps({ animation, easing })}
               className={cn(
                 "rounded-box border-base-content/50 h-80 border",
                 bgColors[index],

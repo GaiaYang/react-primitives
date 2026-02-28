@@ -1,4 +1,5 @@
 import useAOSInitial from "./hooks/useAOSInitial";
+import toAOSProps from "./core/toAOSProps";
 
 export type {
   ScrollAnimationOptions,
@@ -11,4 +12,4 @@ export type {
   Easing,
 } from "./types";
 
-export { useAOSInitial };
+export { useAOSInitial, toAOSProps };

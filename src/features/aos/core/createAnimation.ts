@@ -1,26 +1,13 @@
-import type { ScrollAnimationOptions, AOSAnimation } from "../types";
+import type { AOSAnimation } from "../types";
 
 import animations, { type AnimationFunction } from "./animations";
-import { DEFAULT_OPTIONS } from "./config";
-
-type DataKeys =
-  | "offset"
-  | "delay"
-  | "duration"
-  | "easing"
-  | "once"
-  | "mirror"
-  | "anchor-placement";
-
-const AOS_ATTRIBUTE_MAP = {
-  "data-aos-offset": "offset",
-  "data-aos-delay": "delay",
-  "data-aos-duration": "duration",
-  "data-aos-easing": "easing",
-  "data-aos-mirror": "mirror",
-  "data-aos-once": "once",
-  "data-aos-anchor-placement": "anchorPlacement",
-} satisfies Record<`data-aos-${DataKeys}`, keyof ScrollAnimationOptions>;
+import {
+  DEFAULT_OPTIONS,
+  AOS_ATTRIBUTE_MAP,
+  anchorPlacements,
+  easings,
+  type AOSDataAttributeKeys,
+} from "./config";
 
 const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
   fade: animations.fade,
@@ -91,27 +78,62 @@ function parseAttributes<E extends Element>(element: E) {
     const value = element.getAttribute(key);
 
     if (value) {
-      const prop = AOS_ATTRIBUTE_MAP[key as `data-aos-${DataKeys}`];
+      const prop = AOS_ATTRIBUTE_MAP[key as AOSDataAttributeKeys];
 
       switch (prop) {
         case "offset":
         case "delay":
-        case "duration":
-          options[prop] = parseInt(value, 10);
+        case "duration": {
+          const numberValue = parseNumber(value);
+          if (!Number.isNaN(numberValue)) {
+            options[prop] = numberValue;
+          }
           break;
-        case "easing":
-          options[prop] = value as ScrollAnimationOptions["easing"];
+        }
+        case "easing": {
+          const easing = parseEnum(easings, value);
+          if (easing) {
+            options[prop] = easing;
+          }
           break;
+        }
         case "once":
-        case "mirror":
-          options[prop] = value === "true";
+        case "mirror": {
+          const booleanValue = parseBoolean(value);
+          if (typeof booleanValue === "boolean") {
+            options[prop] = booleanValue;
+          }
           break;
-        case "anchorPlacement":
-          options[prop] = value as ScrollAnimationOptions["anchorPlacement"];
+        }
+        case "anchorPlacement": {
+          const anchorPlacement = parseEnum(anchorPlacements, value);
+          if (anchorPlacement) {
+            options[prop] = anchorPlacement;
+          }
           break;
+        }
       }
     }
   }
 
   return options;
+}
+
+function parseEnum<T>(list: readonly T[], value: string): T | undefined {
+  return list.includes(value as T) ? (value as T) : undefined;
+}
+
+function parseBoolean(value: string) {
+  switch (value) {
+    case "true":
+      return true;
+    case "false":
+      return false;
+    default:
+      break;
+  }
+}
+
+function parseNumber(value: string) {
+  return parseInt(value, 10);
 }

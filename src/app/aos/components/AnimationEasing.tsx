@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import type { Easing } from "@/features/aos";
 
 import cn from "@/utils/cn";
-import { eases } from "./config";
+import { easings } from "@/features/aos/core/config";
 
-const easingCategories = Array.from(new Set(eases.map((e) => e.split(".")[0])));
+const easingCategories = Array.from(
+  new Set(easings.map((e) => e.split(".")[0])),
+);
 
 type EaseType = "default" | "in" | "out" | "inOut";
 
@@ -18,18 +20,18 @@ const easeVariantMap: Record<EaseType, string> = {
 };
 
 export default function AnimationEasingSelector({
-  onChangeEaseing,
+  onChangeEasing,
 }: {
-  onChangeEaseing: React.Dispatch<React.SetStateAction<Easing>>;
+  onChangeEasing: React.Dispatch<React.SetStateAction<Easing>>;
 }) {
-  const [selectedCategory, setSelectedCategory] = useState(eases[0]);
+  const [selectedCategory, setSelectedCategory] = useState(easings[0]);
   const [selectedVariant, setSelectedVariant] = useState(easeVariants[0]);
 
   useEffect(() => {
-    onChangeEaseing(
+    onChangeEasing(
       `${selectedCategory}${selectedVariant === "default" ? "" : "."}${easeVariantMap[selectedVariant] || ""}`,
     );
-  }, [onChangeEaseing, selectedCategory, selectedVariant]);
+  }, [onChangeEasing, selectedCategory, selectedVariant]);
 
   return (
     <div className="card card-border card-sm">
