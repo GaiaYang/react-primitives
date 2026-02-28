@@ -40,11 +40,15 @@ export default function toAOSProps(options: AOSAttributeOptions) {
 }
 
 function cleanAttrs<T extends object>(obj: T) {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== undefined),
-  ) as {
-    [K in keyof T as T[K] extends undefined ? never : K]: T[K];
-  };
+  const result = {} as T;
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key as keyof T] = value;
+    }
+  }
+
+  return result;
 }
 
 function toBooleanAttr(value?: boolean) {
@@ -55,6 +59,6 @@ function toNumberAttr(value?: number) {
   return typeof value === "number" ? String(value) : undefined;
 }
 
-function validateEnumValue<T>(list: readonly T[], value: unknown) {
-  return list.includes(value as T) ? (value as T) : undefined;
+function validateEnumValue<T>(list: readonly T[], value: T) {
+  return list.includes(value) ? value : undefined;
 }
