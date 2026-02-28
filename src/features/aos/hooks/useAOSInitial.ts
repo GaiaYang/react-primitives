@@ -60,7 +60,19 @@ export default function useAOSInitial<E extends HTMLElement = HTMLElement>() {
             mutation.attributeName?.startsWith("data-aos")
           ) {
             if (mutation.target instanceof HTMLElement) {
-              addedElements.push(mutation.target);
+              const element = mutation.target;
+              // 先清除舊動畫
+              const prevAnimation = elementAnimations.current.get(element);
+              if (prevAnimation) {
+                prevAnimation.kill();
+                elementAnimations.current.delete(element);
+              }
+
+              // 重新建立動畫
+              const animation = createAnimation(element, contextSafe);
+              if (animation) {
+                elementAnimations.current.set(element, animation);
+              }
             }
           }
 
