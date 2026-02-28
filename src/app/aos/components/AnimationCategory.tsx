@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import type { AOSAnimation } from "@/features/aos";
 
-import { animations } from "@/features/aos/core/config";
+import { animations } from "@/features/aos/constants";
 import cn from "@/utils/cn";
 
 const categories = Array.from(

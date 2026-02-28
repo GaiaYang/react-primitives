@@ -6,8 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import cn from "@/utils/cn";
 
 import { useAOSInitial, toAOSProps } from "@/features/aos";
-import { animations, easings } from "@/features/aos/core/config";
-import { bgColors } from "./config";
+import { animations, easings } from "@/features/aos/constants";
+import { bgColors } from "./constants";
 import AnimationCategory from "./AnimationCategory";
 import AnimationEasing from "./AnimationEasing";
 

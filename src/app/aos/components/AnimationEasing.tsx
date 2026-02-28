@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { Easing } from "@/features/aos";
 
 import cn from "@/utils/cn";
-import { easings } from "@/features/aos/core/config";
+import { easings } from "@/features/aos/constants";
 
 const easingCategories = Array.from(
   new Set(easings.map((e) => e.split(".")[0])),

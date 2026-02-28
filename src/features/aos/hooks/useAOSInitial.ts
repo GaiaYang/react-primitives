@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { createAnimation } from "../core/createAnimation";
+import { createAnimation } from "../createAOSAnimation";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 

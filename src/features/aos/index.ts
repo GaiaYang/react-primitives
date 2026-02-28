@@ -1,5 +1,5 @@
 import useAOSInitial from "./hooks/useAOSInitial";
-import toAOSProps from "./core/toAOSProps";
+import toAOSProps from "./utils/toAOSProps";
 
 export type {
   ScrollAnimationOptions,

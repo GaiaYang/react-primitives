@@ -1,10 +1,47 @@
 export interface ScrollAnimationOptions {
+  /**
+   * 提前觸發動畫的距離 (px)
+   *
+   * @default 120
+   */
   offset: number;
+  /**
+   * 延遲時間 (ms)
+   *
+   * @default 0
+   */
   delay: number;
+  /**
+   * 持續時間 (ms)
+   *
+   * @default 400
+   */
   duration: number;
+  /**
+   * 緩動曲線
+   *
+   * @default "none"
+   */
   easing: Easing;
+  /**
+   * 是否只執行一次
+   *
+   * @default false
+   */
   once: boolean;
+  /**
+   * 是否啟用動畫退場
+   *
+   * @default false
+   */
   mirror: boolean;
+  /**
+   * 動畫在視窗的觸發位置
+   *
+   * [GSAP 文件](https://gsap.com/docs/v3/Eases)
+   *
+   * @default "top-bottom"
+   */
   anchorPlacement: AnchorPlacement;
 }
 

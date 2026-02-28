@@ -1,4 +1,4 @@
-import type { AOSAnimation } from "../types";
+import type { AOSAnimation } from "./types";
 
 import animations, { type AnimationFunction } from "./animations";
 import {
@@ -7,7 +7,7 @@ import {
   anchorPlacements,
   easings,
   type AOSDataAttributeKeys,
-} from "./config";
+} from "./constants";
 
 const ANIMATION_REGISTRY: Record<AOSAnimation, AnimationFunction> = {
   fade: animations.fade,

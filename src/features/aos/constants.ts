@@ -3,7 +3,7 @@ import type {
   AOSAnimation,
   Easing,
   ScrollAnimationOptions,
-} from "../types";
+} from "./types";
 
 /** 距離 `px` */
 export const DISTANCE = 100;

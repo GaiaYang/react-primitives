@@ -1,9 +1,15 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import type { AnchorPlacement, ScrollAnimationOptions } from "../types";
-import { DEFAULT_OPTIONS, DISTANCE } from "./config";
-import { translate3d, scale, rotateX, rotateY, perspective } from "./tweenVars";
+import type { AnchorPlacement, ScrollAnimationOptions } from "./types";
+import { DEFAULT_OPTIONS, DISTANCE } from "./constants";
+import {
+  translate3d,
+  scale,
+  rotateX,
+  rotateY,
+  perspective,
+} from "./utils/tweenVars";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,12 +19,12 @@ export type AnimationFunction = (
   options?: ScrollAnimationOptions,
 ) => gsap.core.Tween;
 
-type AnimationPreset = {
+interface AnimationPreset {
   from: gsap.TweenVars;
   to: gsap.TweenVars;
-};
+}
 
-interface AnimationConfig extends AnimationPreset {
+interface AnimationDefinitions extends AnimationPreset {
   preset: AnimationPreset;
 }
 
@@ -80,7 +86,7 @@ function scrollTriggerStart(
 
 /** 建立 ScrollTrigger 動畫 */
 function createScrollTriggerTween(
-  element: Element,
+  element: HTMLElement,
   preset: AnimationPreset,
   fromVars: gsap.TweenVars,
   toVars: gsap.TweenVars,
@@ -120,7 +126,7 @@ function createScrollTriggerTween(
   );
 }
 
-const config = {
+const definitions = {
   fade: { preset: presets.fade, from: {}, to: {} },
   fadeUp: {
     preset: presets.fade,
@@ -268,16 +274,16 @@ const config = {
     },
     to: {},
   },
-} satisfies Record<string, AnimationConfig>;
+} satisfies Record<string, AnimationDefinitions>;
 
-function createTweenMap<T extends Record<string, AnimationConfig>>(
-  config: T,
+function createAnimationMap<T extends Record<string, AnimationDefinitions>>(
+  definitions: T,
 ): { [K in keyof T]: AnimationFunction } {
   const result = {} as Record<keyof T, AnimationFunction>;
-  const keys = Object.keys(config) as Array<keyof T>;
+  const keys = Object.keys(definitions) as Array<keyof T>;
 
   for (const key of keys) {
-    const { preset, from, to } = config[key];
+    const { preset, from, to } = definitions[key];
 
     result[key] = (element, contextSafe, options) => {
       return (
@@ -291,6 +297,6 @@ function createTweenMap<T extends Record<string, AnimationConfig>>(
   return result;
 }
 
-const animations = createTweenMap(config);
+const animations = createAnimationMap(definitions);
 
 export default animations;

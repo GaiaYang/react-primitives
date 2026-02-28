@@ -1,5 +1,5 @@
 import type { AOSAnimation, ScrollAnimationOptions } from "../types";
-import { anchorPlacements, easings } from "./config";
+import { anchorPlacements, easings } from "../constants";
 
 interface AOSDataAttributes extends Partial<
   Record<
@@ -16,23 +16,23 @@ interface AOSDataAttributes extends Partial<
   "data-aos": AOSAnimation;
 }
 
-interface AOSProps extends Partial<ScrollAnimationOptions> {
+interface AOSAttributeOptions extends Partial<ScrollAnimationOptions> {
   animation: AOSAnimation;
 }
 
 /** 將 options 轉成可直接使用的 AOS data attributes */
-export default function toAOSProps(params: AOSProps) {
+export default function toAOSProps(options: AOSAttributeOptions) {
   const attrs: AOSDataAttributes = {
-    "data-aos": params.animation,
-    "data-aos-offset": toNumberAttr(params.offset),
-    "data-aos-delay": toNumberAttr(params.delay),
-    "data-aos-duration": toNumberAttr(params.duration),
-    "data-aos-easing": toEnumAttr(easings, params.easing),
-    "data-aos-mirror": toBooleanAttr(params.mirror),
-    "data-aos-once": toBooleanAttr(params.once),
-    "data-aos-anchor-placement": toEnumAttr(
+    "data-aos": options.animation,
+    "data-aos-offset": toNumberAttr(options.offset),
+    "data-aos-delay": toNumberAttr(options.delay),
+    "data-aos-duration": toNumberAttr(options.duration),
+    "data-aos-easing": validateEnumValue(easings, options.easing),
+    "data-aos-mirror": toBooleanAttr(options.mirror),
+    "data-aos-once": toBooleanAttr(options.once),
+    "data-aos-anchor-placement": validateEnumValue(
       anchorPlacements,
-      params.anchorPlacement,
+      options.anchorPlacement,
     ),
   };
 
@@ -55,6 +55,6 @@ function toNumberAttr(value?: number) {
   return typeof value === "number" ? String(value) : undefined;
 }
 
-function toEnumAttr<T>(list: readonly T[], value: unknown) {
+function validateEnumValue<T>(list: readonly T[], value: unknown) {
   return list.includes(value as T) ? (value as T) : undefined;
 }
